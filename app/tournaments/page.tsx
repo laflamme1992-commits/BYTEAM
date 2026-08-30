@@ -241,7 +241,6 @@ export default function TournamentsPage() {
             </GlassCard>
           )}
 
-          {/* Рекомендованные турниры */}
           {recommendedTournaments.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -278,7 +277,7 @@ export default function TournamentsPage() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Award className="w-4 h-4" />
-                        Max {t.maxElo} Elo
+                        Max {t.max_elo} Elo
                       </span>
                     </div>
                     <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
@@ -290,7 +289,6 @@ export default function TournamentsPage() {
             </div>
           )}
 
-          {/* Все турниры */}
           <div>
             <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-yellow-400" />
