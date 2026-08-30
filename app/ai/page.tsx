@@ -66,7 +66,7 @@ export default function AIPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.reply) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: 'Извините, произошла ошибка. Попробуйте позже.' }]);
