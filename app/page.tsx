@@ -1,69 +1,90 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from '@/components/ui/Button'
+import { Trophy, Users, Target, Calendar, TrendingUp, Sparkles, ChevronRight } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-[#0a0e17]">
+      {/* Навигация */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e17]/80 backdrop-blur-xl border-b border-[#1a2332]">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-white tracking-tight">BYTEAM</span>
+            <span className="text-[10px] font-mono text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">БЕТА</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm">Войти</Button>
+            <Button size="sm">Начать</Button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </nav>
+
+      {/* Герой-блок */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#1a2332] bg-[#0f1622] text-xs text-gray-400 mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              Платформа управления командой на базе ИИ
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold text-white leading-[1.1] mb-6 tracking-tight">
+              Менеджер
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-300 to-purple-400">
+                твоей команды.
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+              Организуй команду. Тренируйся умнее. Соревнуйся вместе.
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link href="/dashboard">
+                <Button size="lg" className="px-8 gap-2">
+                  Создать команду
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" className="px-8">
+                Искать турниры
+              </Button>
+            </div>
+          </div>
+
+          {/* Возможности */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-20">
+            {features.map((feature, index) => (
+              <div 
+                key={index}
+                className="group bg-[#0f1622] border border-[#1a2332] rounded-2xl p-6 text-center hover:border-blue-500/40 hover:bg-[#131b2a] transition-all duration-300 cursor-default"
+              >
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 flex items-center justify-center mx-auto mb-3 transition-all">
+                  <feature.icon className="w-6 h-6 text-blue-400 group-hover:text-blue-300 transition-all" />
+                </div>
+                <h3 className="text-white font-semibold text-sm">{feature.label}</h3>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
-  );
+      </section>
+
+      {/* Подвал */}
+      <footer className="border-t border-[#1a2332] py-8 px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-gray-500">
+          <span>© 2026 BYTEAM. Все права защищены.</span>
+          <span>Создано для киберспортивных команд</span>
+        </div>
+      </footer>
+    </main>
+  )
 }
+
+const features = [
+  { icon: Users, label: 'Управление командой' },
+  { icon: Calendar, label: 'Тренировки' },
+  { icon: Target, label: 'Задачи' },
+  { icon: Trophy, label: 'Турниры' },
+  { icon: TrendingUp, label: 'Прогресс' },
+]
