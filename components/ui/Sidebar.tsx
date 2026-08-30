@@ -33,7 +33,7 @@ export function Sidebar() {
     <aside className="w-56 bg-[#0f1622]/90 backdrop-blur-md border-r border-white/5 h-screen fixed left-0 top-0 p-4 flex flex-col">
       {/* Логотип */}
       <div className="flex items-center gap-2 mb-8 px-2">
-        <img src="/logo.png" alt="BYTEAM" className="h-16 w-auto" />
+        <img src="/logo.png" alt="BYTEAM" className="h-30 w-auto" />
         <span className="text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20">
           БЕТА
         </span>
