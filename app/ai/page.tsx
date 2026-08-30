@@ -22,14 +22,25 @@ export default function AIPage() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) router.push('/login');
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/login');
+          return;
+        }
+        setIsAuth(true);
+      } catch (error) {
+        console.log('Auth check error, redirecting to login');
+        router.push('/login');
+      }
+      setLoading(false);
     };
     checkAuth();
   }, [supabase, router]);
@@ -39,14 +50,13 @@ export default function AIPage() {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !isAuth) return;
 
     const userMessage = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
 
-    // Имитация ответа AI (в будущем заменим на реальный OpenAI API)
     setTimeout(() => {
       const responses = [
         'Анализирую ваше расписание... 📊 За неделю до турнира рекомендую провести 3 интенсивные тренировки по 2 часа. У вас есть свободные слоты: завтра 19:00, среда 20:00 и пятница 18:00.',
@@ -77,6 +87,17 @@ export default function AIPage() {
     ]);
   };
 
+  if (!isAuth) {
+    return (
+      <div className="min-h-screen bg-[#0a0e17] flex">
+        <Sidebar />
+        <main className="flex-1 ml-56 p-8 flex items-center justify-center">
+          <div className="text-white text-xl">Проверка авторизации...</div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0e17] flex">
       <Sidebar />
@@ -103,7 +124,6 @@ export default function AIPage() {
           </div>
 
           <GlassCard className="p-0 overflow-hidden flex flex-col h-[500px]">
-            {/* Сообщения */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.map((msg, index) => (
                 <div
@@ -150,7 +170,6 @@ export default function AIPage() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Ввод */}
             <div className="border-t border-[#1a2332] p-4">
               <div className="flex items-center gap-3">
                 <input
@@ -177,7 +196,6 @@ export default function AIPage() {
             </div>
           </GlassCard>
 
-          {/* Быстрые вопросы */}
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
             {quickQuestions.map((question) => (
               <button
