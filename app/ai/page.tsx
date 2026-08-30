@@ -1,12 +1,14 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
-import { Bot, Send, Sparkles, RefreshCw, User, Lightbulb } from 'lucide-react';
+import { Bot, Send, RefreshCw, User, Lightbulb } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -40,7 +42,6 @@ export default function AIPage() {
         console.log('Auth check error, redirecting to login');
         router.push('/login');
       }
-      setLoading(false);
     };
     checkAuth();
   }, [supabase, router]);
@@ -59,10 +60,10 @@ export default function AIPage() {
 
     setTimeout(() => {
       const responses = [
-        'Анализирую ваше расписание... 📊 За неделю до турнира рекомендую провести 3 интенсивные тренировки по 2 часа. У вас есть свободные слоты: завтра 19:00, среда 20:00 и пятница 18:00.',
-        'По данным статистики, вашей команде нужно улучшить игру на Mirage. Предлагаю выделить 2 тренировки на разбор стратегий на этой карте. Игрок 1 (IGL) уже подготовил материалы.',
-        'Отличная новость! 🎉 На основе вашего текущего Elo (2384) и прогресса (82%), вы можете достичь цели 2500 уже через 2 недели, если проведете 4 дополнительные тренировки.',
-        'Рекомендую зарегистрироваться на BYTEAM Open Cup 5 сентября. Ваш состав полностью соответствует требованиям турнира (max 2500 Elo). Уровень команды позволяет бороться за призовые места!'
+        'Анализирую ваше расписание... 📊 За неделю до турнира рекомендую провести 3 интенсивные тренировки по 2 часа.',
+        'По данным статистики, вашей команде нужно улучшить игру на Mirage.',
+        'Отличная новость! 🎉 На основе вашего текущего Elo (2384) и прогресса (82%), вы можете достичь цели 2500 уже через 2 недели.',
+        'Рекомендую зарегистрироваться на BYTEAM Open Cup 5 сентября.'
       ];
       const randomResponse = responses[Math.floor(Math.random() * responses.length)];
       
@@ -200,9 +201,7 @@ export default function AIPage() {
             {quickQuestions.map((question) => (
               <button
                 key={question}
-                onClick={() => {
-                  setInput(question);
-                }}
+                onClick={() => setInput(question)}
                 className="bg-[#0f1622] border border-[#1a2332] rounded-xl px-4 py-2 text-sm text-gray-400 hover:border-blue-500/30 hover:text-white transition-all text-left flex items-center gap-2"
               >
                 <Lightbulb className="w-3 h-3 text-blue-400" />
