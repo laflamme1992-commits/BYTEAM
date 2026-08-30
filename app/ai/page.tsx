@@ -59,7 +59,9 @@ export default function AIPage() {
       const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({
+          messages: [...messages, { role: 'user', content: userMessage }]
+        }),
       });
 
       const data = await response.json();
