@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Используем KeylessAI — бесплатный прокси к LLM
+// Используем OpenAPIs — бесплатный прокси к LLM
 const openai = new OpenAI({
-  apiKey: 'not-needed',
-  baseURL: 'https://keylessai.thryx.workers.dev/v1',
+  apiKey: 'admin', // ключ не проверяется
+  baseURL: 'https://api.openapis.online/openai/v1',
 });
 
 export async function POST(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // <-- ЭТО ИЗМЕНЕНИЕ
+      model: 'gpt-3.5-turbo', // можно оставить или попробовать другую модель
       messages: [
         {
           role: 'system',
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
           Ты помогаешь с планированием тренировок, анализом игроков и стратегиями.
           Отвечай кратко, по делу, на русском языке.
           Твой тон — уверенный, профессиональный, но дружелюбный.
-          Если тебя спрашивают про статистику — уточняй, что ты не имеешь доступа к реальной статистике.
+          Если тебя спрашивают про статистику — уточняй, что у тебя нет доступа к реальным данным.
           Всегда давай конкретные, полезные советы.`
         },
         ...messages
