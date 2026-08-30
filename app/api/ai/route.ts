@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 // Используем KeylessAI — бесплатный прокси к LLM
 const openai = new OpenAI({
-  apiKey: 'not-needed', // ключ не требуется
+  apiKey: 'not-needed',
   baseURL: 'https://keylessai.thryx.workers.dev/v1',
 });
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini', // <-- ЭТО ИЗМЕНЕНИЕ
       messages: [
         {
           role: 'system',
