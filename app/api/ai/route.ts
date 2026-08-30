@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo', // можно оставить или заменить на любую модель
+      model: 'gpt-3.5-turbo',
       messages: [
         {
           role: 'system',
