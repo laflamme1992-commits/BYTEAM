@@ -1,7 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -39,7 +37,6 @@ export default function AIPage() {
         }
         setIsAuth(true);
       } catch (error) {
-        console.log('Auth check error, redirecting to login');
         router.push('/login');
       }
     };
@@ -58,18 +55,25 @@ export default function AIPage() {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
 
-    setTimeout(() => {
-      const responses = [
-        'Анализирую ваше расписание... 📊 За неделю до турнира рекомендую провести 3 интенсивные тренировки по 2 часа.',
-        'По данным статистики, вашей команде нужно улучшить игру на Mirage.',
-        'Отличная новость! 🎉 На основе вашего текущего Elo (2384) и прогресса (82%), вы можете достичь цели 2500 уже через 2 недели.',
-        'Рекомендую зарегистрироваться на BYTEAM Open Cup 5 сентября.'
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      
-      setMessages(prev => [...prev, { role: 'assistant', content: randomResponse }]);
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Извините, произошла ошибка. Попробуйте позже.' }]);
+      }
+    } catch (error) {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Не удалось подключиться к AI. Проверьте интернет.' }]);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   const quickQuestions = [
@@ -83,7 +87,7 @@ export default function AIPage() {
     setMessages([
       {
         role: 'assistant',
-        content: 'Привет! Я BYTEAM AI 🤖 Готов помочь твоей команде. Задай мне любой вопрос о стратегии, тренировках или турнирах!'
+        content: 'Привет! Я BYTEAM AI 🤖 Готов помочь твоей команде. Задай мне любой вопрос!'
       }
     ]);
   };
