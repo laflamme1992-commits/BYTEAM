@@ -1,0 +1,8 @@
+.playbook {
+  --pb-bg: #10141d;
+  --pb-line: #2c3241;
+  --pb-muted: #a4adbf;
+}
+.playbook :global(.header-actions) {
+  flex-wrap: wrap;
+}

@@ -19,6 +19,13 @@ import {
   Target,
   Users,
 } from "lucide-react";
+import { EntryEditor } from "@/components/playbook/EntryEditor";
+import {
+  blankEntry,
+  parseEntry,
+  type PlaybookEntry,
+} from "@/lib/playbook/model";
+import { localSnapshot, persistLocal } from "@/lib/playbook/storage";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { Header } from "@/components/workspace/Header";
 import { Notice } from "@/components/workspace/Notice";
@@ -70,6 +77,7 @@ export default function AIPage() {
   const [includeTeamData, setIncludeTeamData] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [adviceDraft, setAdviceDraft] = useState<PlaybookEntry | null>(null);
   const [proposal, setProposal] = useState<{
     index: number;
     value: TaskProposal;
@@ -227,6 +235,40 @@ export default function AIPage() {
       setSaving(false);
     }
   }
+  function reviewForPlaybook(index: number) {
+    const answer = messages[index];
+    if (answer.content.length > 6000) {
+      setAnnouncement(
+        "Ответ длиннее лимита заметки. Попросите специалиста сократить его перед сохранением.",
+      );
+      return;
+    }
+    const question =
+      messages
+        .slice(0, index)
+        .reverse()
+        .find((message) => message.role === "user")?.content || "Идея команды";
+    setAdviceDraft({
+      ...blankEntry(),
+      title: `${selected.title} · ${question}`.slice(0, 120),
+      kind: activeRole === "analyst" ? "tip" : "strategy",
+      summary:
+        answer.source === "fallback"
+          ? "Справочный шаблон. Уточните карту и проверьте идею на тренировке."
+          : "Идея ИИ. Уточните карту, роли и проверьте план на тренировке.",
+      notes: answer.content,
+    });
+  }
+  async function saveAdvice(entry: PlaybookEntry) {
+    const validated = parseEntry({
+      ...entry,
+      updatedAt: new Date().toISOString(),
+    });
+    if (!validated) throw new Error("Не удалось проверить запись плейбука.");
+    persistLocal([validated, ...localSnapshot()]);
+    setAdviceDraft(null);
+    setAnnouncement("Идея сохранена в локальный плейбук на этом устройстве.");
+  }
   async function copyReply() {
     try {
       await navigator.clipboard.writeText(
@@ -332,6 +374,17 @@ export default function AIPage() {
                           недоступна
                         </small>
                       )}
+                      {index > 0 &&
+                        message.role === "assistant" &&
+                        message.source &&
+                        ["coach", "analyst"].includes(activeRole) && (
+                          <button
+                            className="secondary-button staff-to-playbook"
+                            onClick={() => reviewForPlaybook(index)}
+                          >
+                            Проверить и добавить в плейбук
+                          </button>
+                        )}
                       {message.proposal && (
                         <div className="staff-proposal">
                           <span className="eyebrow">
@@ -496,6 +549,17 @@ export default function AIPage() {
               </section>
             </aside>
           </div>
+          <Link href="/playbook" className="panel-link">
+            Открыть плейбук команды
+            <ArrowUpRight size={15} />
+          </Link>
+          {adviceDraft && (
+            <EntryEditor
+              entry={adviceDraft}
+              onClose={() => setAdviceDraft(null)}
+              onSave={saveAdvice}
+            />
+          )}
           <p className="staff-announcement" role="status">
             {announcement}
           </p>

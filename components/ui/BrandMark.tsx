@@ -9,7 +9,7 @@ export function BrandMark({
   return (
     <Image
       className={`brand-symbol ${className}`}
-      src="/brand/byteam-byt.png"
+      src="/brand/byteam-byt-italic.png"
       width={size}
       height={size}
       alt=""

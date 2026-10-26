@@ -13,6 +13,7 @@ import {
   LogOut,
   ArrowUpRight,
   Shield,
+  BookOpen,
 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -23,6 +24,7 @@ const navItems = [
   { icon: Users, label: "Команда", href: "/team" },
   { icon: Calendar, label: "Календарь", href: "/calendar" },
   { icon: CheckSquare, label: "Задачи", href: "/tasks" },
+  { icon: BookOpen, label: "Плейбук", href: "/playbook" },
   { icon: TrendingUp, label: "Тренировки", href: "/practice" },
   { icon: Trophy, label: "Турниры", href: "/tournaments" },
   { icon: TrendingUp, label: "Прогресс", href: "/progress" },

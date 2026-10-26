@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BookOpen,
   ArrowUpRight,
   CalendarDays,
   Check,
@@ -66,6 +67,7 @@ export default function Home() {
           <div className={styles.navLinks}>
             <a href="#features">Возможности</a>
             <a href="#workflow">Как это работает</a>
+            <Link href="/playbook">Плейбук</Link>
             <Link href="/ai">
               ИИ-штаб
               <Sparkles size={12} />
@@ -138,6 +140,7 @@ export default function Home() {
             { icon: Users, text: "Состав" },
             { icon: CalendarDays, text: "Расписание" },
             { icon: Crosshair, text: "Тренировки" },
+            { icon: BookOpen, text: "Плейбук" },
             { icon: Trophy, text: "Турниры" },
             { icon: Sparkles, text: "ИИ-штаб" },
           ].map(({ icon: Icon, text }) => (

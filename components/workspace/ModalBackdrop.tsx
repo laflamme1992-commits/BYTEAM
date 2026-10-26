@@ -19,7 +19,7 @@ export function ModalBackdrop({
     const root = ref.current!;
     const focusable = () => [
       ...root.querySelectorAll<HTMLElement>(
-        "button:not(:disabled), input:not(:disabled), select:not(:disabled), a[href]",
+        "button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]",
       ),
     ];
     (root.querySelector<HTMLElement>("[autofocus]") || focusable()[0])?.focus();
