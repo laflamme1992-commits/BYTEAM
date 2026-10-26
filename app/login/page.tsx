@@ -30,8 +30,8 @@ function LoginPageConnected() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c1011] flex items-center justify-center">
-      <div className="bg-[#141b19] border border-[#29382f] rounded-2xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-[#0b0d12] flex items-center justify-center">
+      <div className="bg-[#141821] border border-[#2b3140] rounded-2xl p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-white text-center mb-6">
           Вход в BYTEAM
         </h1>
@@ -39,7 +39,7 @@ function LoginPageConnected() {
           <input
             type="email"
             placeholder="Электронная почта"
-            className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
+            className="w-full bg-[#0b0d12] border border-[#2b3140] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -47,7 +47,7 @@ function LoginPageConnected() {
           <input
             type="password"
             placeholder="Пароль"
-            className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
+            className="w-full bg-[#0b0d12] border border-[#2b3140] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -58,7 +58,7 @@ function LoginPageConnected() {
         </form>
         <p className="text-center text-gray-400 text-sm mt-4">
           Нет аккаунта?{" "}
-          <a href="/register" className="text-teal-400 hover:underline">
+          <a href="/register" className="text-orange-400 hover:underline">
             Зарегистрироваться
           </a>
         </p>

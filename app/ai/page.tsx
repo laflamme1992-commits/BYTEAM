@@ -3,25 +3,41 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import {
-  Sparkles,
-  Send,
-  RefreshCw,
   ArrowUpRight,
-  CalendarDays,
-  Target,
   Bot,
-  Copy,
+  CalendarDays,
   Check,
+  ClipboardList,
+  Copy,
+  HeartHandshake,
+  Plus,
+  RefreshCw,
+  Search,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Users,
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { Header } from "@/components/workspace/Header";
 import { Notice } from "@/components/workspace/Notice";
 import { useTeamData } from "@/lib/hooks/useTeamData";
+import { createClient } from "@/lib/supabase/client";
+import { staffRoles, StaffRole, TaskProposal } from "@/lib/ai/staff";
 
-type Message = { role: "user" | "assistant"; content: string; source?: string };
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+  source?: string;
+  proposal?: TaskProposal | null;
+  saved?: boolean;
+};
 interface Task {
   id: string;
+  title: string;
   status: string;
+  assignee: string;
 }
 interface TeamEvent {
   id: string;
@@ -29,26 +45,55 @@ interface TeamEvent {
   date: string;
   time: string;
 }
-const greeting: Message = {
-  role: "assistant",
-  content:
-    "Привет! Давайте сделаем команду сильнее. Помогу разобраться в тактике, спланировать тренировки и подготовиться к турниру. С чего начнём?",
+const roleIcons = {
+  manager: ClipboardList,
+  scout: Search,
+  coach: Target,
+  analyst: Sparkles,
+  psychologist: HeartHandshake,
 };
-const suggestions = [
-  "Составь план тренировок на неделю",
-  "Как улучшить игру на Mirage?",
-  "Как подготовиться к турниру?",
-  "Как проводить разбор демо?",
-];
+const initialChats = () =>
+  Object.fromEntries(
+    staffRoles.map((role) => [
+      role.id,
+      [{ role: "assistant", content: role.greeting }],
+    ]),
+  ) as Record<StaffRole, Message[]>;
+
 export default function AIPage() {
-  const { items: tasks, error } = useTeamData<Task>("tasks");
+  const { items: tasks, teamId, error } = useTeamData<Task>("tasks");
   const { items: events } = useTeamData<TeamEvent>("events");
-  const [messages, setMessages] = useState<Message[]>([greeting]);
+  const [activeRole, setActiveRole] = useState<StaffRole>("manager");
+  const [chats, setChats] = useState(initialChats);
   const [input, setInput] = useState("");
+  const [context, setContext] = useState("");
+  const [includeTeamData, setIncludeTeamData] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [proposal, setProposal] = useState<{
+    index: number;
+    value: TaskProposal;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [announcement, setAnnouncement] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const proposalRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (proposal) {
+      proposalRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      proposalRef.current
+        ?.querySelector("input")
+        ?.focus({ preventScroll: true });
+    }
+  }, [proposal]);
   const requestRef = useRef<AbortController | null>(null);
+  const selected = staffRoles.find((role) => role.id === activeRole)!;
+  const Icon = roleIcons[activeRole];
+  const messages = chats[activeRole];
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, busy]);
@@ -58,23 +103,52 @@ export default function AIPage() {
     },
     [],
   );
+  function switchRole(role: StaffRole) {
+    setActiveRole(role);
+    setInput("");
+    setCopied(false);
+    setProposal(null);
+    setActionError("");
+  }
   async function send(e: FormEvent) {
     e.preventDefault();
     if (!input.trim() || busy) return;
+    const role = activeRole;
     const next: Message[] = [
-      ...messages,
+      ...chats[role],
       { role: "user", content: input.trim() },
     ];
-    setMessages(next);
+    setChats((prev) => ({ ...prev, [role]: next }));
     setInput("");
     setBusy(true);
+    setCopied(false);
     const controller = new AbortController();
     requestRef.current = controller;
+    const shared = [
+      context,
+      includeTeamData
+        ? JSON.stringify({
+            tasks: tasks
+              .slice(0, 5)
+              .map((t) => ({ title: t.title.slice(0, 100), status: t.status })),
+            events: events.slice(0, 5).map((e) => ({
+              title: e.title.slice(0, 100),
+              date: e.date,
+              time: e.time,
+            })),
+          })
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 3000);
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          role,
+          context: shared,
           messages: next
             .slice(-20)
             .map(({ role, content }) => ({ role, content })),
@@ -82,23 +156,75 @@ export default function AIPage() {
         signal: controller.signal,
       });
       const data = await response.json();
-      if (!response.ok || typeof data.reply !== "string") throw new Error();
-      setMessages((prev) => [
+      if (!response.ok || typeof data.reply !== "string")
+        throw new Error(
+          data.error || "Не удалось получить ответ. Попробуйте ещё раз.",
+        );
+      setChats((prev) => ({
         ...prev,
-        { role: "assistant", content: data.reply, source: data.source },
-      ]);
-    } catch {
-      if (!controller.signal.aborted)
-        setMessages((prev) => [
-          ...prev,
+        [role]: [
+          ...prev[role],
           {
             role: "assistant",
-            content:
-              "Не удалось получить ответ. Попробуйте отправить вопрос ещё раз.",
+            content: data.reply,
+            source: data.source,
+            proposal: data.proposal,
           },
-        ]);
+        ],
+      }));
+    } catch (error) {
+      if (!controller.signal.aborted)
+        setChats((prev) => ({
+          ...prev,
+          [role]: [
+            ...prev[role],
+            {
+              role: "assistant",
+              content:
+                error instanceof Error
+                  ? error.message
+                  : "Не удалось связаться с помощником.",
+            },
+          ],
+        }));
     } finally {
       setBusy(false);
+    }
+  }
+  async function saveTask(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!teamId || !proposal || saving) return;
+    const fields = new FormData(e.currentTarget);
+    const title = String(fields.get("title") || "").trim();
+    if (!title) return;
+    setSaving(true);
+    setActionError("");
+    try {
+      const { error } = await createClient()
+        .from("tasks")
+        .insert({
+          team_id: teamId,
+          title,
+          assignee:
+            String(fields.get("assignee") || "").trim() || "Не назначен",
+          deadline: fields.get("deadline") || "Без срока",
+          status: "todo",
+        });
+      if (error) throw error;
+      setChats((prev) => ({
+        ...prev,
+        [activeRole]: prev[activeRole].map((m, i) =>
+          i === proposal.index ? { ...m, saved: true } : m,
+        ),
+      }));
+      setProposal(null);
+      setAnnouncement("Задача сохранена на доску команды.");
+    } catch {
+      setActionError(
+        "Не удалось сохранить задачу. Предложение осталось в диалоге — попробуйте снова.",
+      );
+    } finally {
+      setSaving(false);
     }
   }
   async function copyReply() {
@@ -108,32 +234,32 @@ export default function AIPage() {
           "",
       );
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      setCopied(false);
+      setAnnouncement(
+        "Браузер не разрешил копирование. Выделите текст ответа вручную.",
+      );
     }
   }
   const completed = tasks.filter((t) => t.status === "done").length;
-  const progress = tasks.length
-    ? Math.round((completed / tasks.length) * 100)
-    : 0;
-  const today = new Date().toLocaleDateString("sv-SE");
-  const upcoming = [...events]
-    .filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.date >= today)
-    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
-    .slice(0, 3);
   return (
     <div className="workspace">
       <Sidebar />
       <main className="workspace-main">
         <Header
-          title="ИИ-менеджер команды"
-          subtitle="Больше ясности в планах. Больше уверенности в игре."
+          title="Ваш ИИ-штаб"
+          subtitle="Пять специалистов. Одна команда. Общая цель."
         >
           <button
             className="secondary-button"
-            disabled={busy}
-            onClick={() => setMessages([greeting])}
+            disabled={busy || saving}
+            onClick={() => {
+              setChats((prev) => ({
+                ...prev,
+                [activeRole]: initialChats()[activeRole],
+              }));
+              setProposal(null);
+              setInput("");
+            }}
           >
             <RefreshCw size={15} />
             Новый диалог
@@ -141,21 +267,55 @@ export default function AIPage() {
         </Header>
         <div className="workspace-content">
           <Notice message={error} />
+          <p className="staff-intro">
+            Выберите специалиста под свою задачу. Диалоги раздельные, а общий
+            контекст задаёте вы.
+          </p>
+          <div
+            className="staff-roles"
+            role="group"
+            aria-label="Специалисты ИИ-штаба"
+          >
+            {staffRoles.map((role) => {
+              const RoleIcon = roleIcons[role.id];
+              return (
+                <button
+                  key={role.id}
+                  className={`staff-role ${activeRole === role.id ? "selected" : ""}`}
+                  aria-pressed={activeRole === role.id}
+                  disabled={busy || saving}
+                  onClick={() => switchRole(role.id)}
+                >
+                  <RoleIcon size={22} />
+                  <strong>{role.title}</strong>
+                  <span>{role.short}</span>
+                </button>
+              );
+            })}
+          </div>
           <div className="ai-layout">
             <section className="panel ai-chat">
               <div className="chat-heading">
                 <span>
-                  <Sparkles size={19} />
-                  BYTEAM · ИИ-помощник
+                  <Icon size={19} />
+                  {selected.title}
                 </span>
                 <span className="chat-status">
                   {busy ? "Готовим ответ…" : "Готов помочь"}
                 </span>
               </div>
+              <p className="staff-description">{selected.description}</p>
+              {activeRole === "psychologist" && (
+                <p className="staff-boundary">
+                  <ShieldCheck size={16} />
+                  ИИ поддерживает общение и подготовку к игре. Он не заменяет
+                  квалифицированного психолога и экстренную помощь.
+                </p>
+              )}
               <div
                 className="chat-messages"
                 role="log"
-                aria-label="Переписка с помощником"
+                aria-label={`Диалог: ${selected.title}`}
               >
                 {messages.map((message, index) => (
                   <div className={`chat-message ${message.role}`} key={index}>
@@ -168,31 +328,50 @@ export default function AIPage() {
                       <div className="chat-bubble">{message.content}</div>
                       {message.source === "fallback" && (
                         <small className="reply-source">
-                          Справочный ответ · ИИ-сервис недоступен
+                          Справочный шаблон · живая ИИ-модель не подключена или
+                          недоступна
                         </small>
+                      )}
+                      {message.proposal && (
+                        <div className="staff-proposal">
+                          <span className="eyebrow">
+                            {message.saved
+                              ? "ЗАДАЧА СОХРАНЕНА"
+                              : "ПРЕДЛОЖЕНИЕ · ЕЩЁ НЕ СОХРАНЕНО"}
+                          </span>
+                          <h3>{message.proposal.title}</h3>
+                          {message.saved ? (
+                            <Link className="panel-link" href="/tasks">
+                              <Check size={14} />
+                              Сохранено — открыть задачи
+                            </Link>
+                          ) : (
+                            <button
+                              className="secondary-button"
+                              disabled={busy || saving}
+                              onClick={() => {
+                                setProposal({
+                                  index,
+                                  value: message.proposal!,
+                                });
+                                setActionError("");
+                              }}
+                            >
+                              <Plus size={15} />
+                              Проверить и создать задачу
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
                 ))}
                 {messages.length === 1 && (
                   <div className="starter-plan">
-                    <span className="eyebrow">С ЧЕГО НАЧНЁМ?</span>
-                    <h2>Каждая победа начинается с плана.</h2>
-                    <p>
-                      Выберите тему или задайте свой вопрос. Тактика,
-                      подготовка, работа над ошибками — разберём по шагам.
-                    </p>
-                    {suggestions.map((q, i) => (
+                    <span className="eyebrow">ПОПРОБУЙТЕ СПРОСИТЬ</span>
+                    <h2>{selected.short}</h2>
+                    {selected.suggestions.map((q) => (
                       <button key={q} onClick={() => setInput(q)}>
-                        <span
-                          className={`suggestion-icon ${i % 2 ? "purple" : "blue"}`}
-                        >
-                          {i % 2 ? (
-                            <Target size={17} />
-                          ) : (
-                            <CalendarDays size={17} />
-                          )}
-                        </span>
                         {q}
                         <ArrowUpRight size={15} />
                       </button>
@@ -204,7 +383,7 @@ export default function AIPage() {
                     <i />
                     <i />
                     <i />
-                    Помощник готовит ответ
+                    {selected.title} готовит ответ
                   </div>
                 )}
                 <div ref={endRef} />
@@ -215,12 +394,15 @@ export default function AIPage() {
                     <Copy size={13} />
                     {copied ? "Скопировано" : "Скопировать ответ"}
                   </button>
-                  <span>Советы требуют проверки тренером</span>
+                  <span>Изменения — после подтверждения</span>
                 </div>
                 <form onSubmit={send}>
+                  <label className="sr-only" htmlFor="staff-message">
+                    Сообщение специалисту
+                  </label>
                   <input
-                    aria-label="Сообщение помощнику"
-                    placeholder="Что обсудим с командой?"
+                    id="staff-message"
+                    placeholder={`Вопрос: ${selected.title.toLowerCase()}`}
                     maxLength={4000}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -235,94 +417,145 @@ export default function AIPage() {
                   </button>
                 </form>
                 <small>
-                  Помощник отвечает на ваши сообщения. Данные команды
-                  автоматически ему не передаются.
+                  В запрос попадают сообщения этого диалога и указанный вами
+                  контекст. Другие диалоги не передаются.
                 </small>
               </div>
             </section>
             <aside className="ai-aside">
               <section className="panel">
                 <div className="panel-title">
-                  <h2>Прогресс команды</h2>
-                  <span className="tag blue">Задачи</span>
+                  <h2>Общий контекст</h2>
+                  <Users size={18} />
                 </div>
-                <div className="progress-summary">
-                  <div
-                    className="progress-ring"
-                    style={{
-                      background: `conic-gradient(var(--accent) ${progress}%, #24372d 0)`,
-                    }}
-                  >
-                    <span>{tasks.length ? `${progress}%` : "—"}</span>
-                  </div>
-                  <div>
-                    <strong>
-                      {completed} из {tasks.length}
-                    </strong>
-                    <small>задач выполнено</small>
-                    <span className="progress-caption">
-                      {!tasks.length
-                        ? "Добавьте первую задачу"
-                        : progress === 100
-                          ? "Отличная работа!"
-                          : "Шаг за шагом к цели"}
-                    </span>
-                  </div>
-                </div>
-                <Link className="panel-link" href="/tasks">
-                  Открыть доску задач <ArrowUpRight size={14} />
-                </Link>
+                <label className="staff-context-label" htmlFor="staff-context">
+                  Цели, роли, карта и доступное время
+                </label>
+                <textarea
+                  id="staff-context"
+                  className="staff-context"
+                  maxLength={1200}
+                  rows={6}
+                  value={context}
+                  onChange={(e) => setContext(e.target.value)}
+                  placeholder="CS2, Mirage. Играем вт/чт с 19:00. Цель — улучшить размены."
+                />
+                <small className="staff-context-note">
+                  Используется при следующем запросе к любому специалисту.
+                  Хранится только на этой странице до обновления.
+                </small>
+                <label className="staff-share">
+                  <input
+                    type="checkbox"
+                    checked={includeTeamData}
+                    disabled={!teamId}
+                    onChange={(e) => setIncludeTeamData(e.target.checked)}
+                  />
+                  Добавить в запрос до 5 задач и событий команды
+                </label>
+                <p className="staff-context-note">
+                  Не добавляйте в общий контекст личные переживания других
+                  игроков без их согласия.
+                </p>
               </section>
               <section className="panel">
                 <div className="panel-title">
-                  <h2>Ближайшие события</h2>
-                  <Link href="/calendar">Календарь</Link>
+                  <h2>Работа команды</h2>
+                  <CalendarDays size={18} />
                 </div>
-                {upcoming.length ? (
-                  upcoming.map((event) => (
-                    <Link
-                      className="upcoming-event"
-                      href="/calendar"
-                      key={event.id}
-                    >
-                      <i className="event-dot" />
-                      <div>
-                        <strong>{event.title}</strong>
-                        <small>
-                          {new Date(
-                            event.date + "T12:00:00",
-                          ).toLocaleDateString("ru-RU", {
-                            day: "numeric",
-                            month: "long",
-                          })}{" "}
-                          · {event.time === "—" ? "Весь день" : event.time}
-                        </small>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="aside-empty">
-                    <CalendarDays size={26} />
-                    <p>План ещё не составлен</p>
-                    <small>
-                      Запланируйте следующую тренировку в календаре команды.
-                    </small>
-                  </div>
-                )}
+                <div className="staff-task-summary">
+                  <strong>
+                    {completed} / {tasks.length}
+                  </strong>
+                  <span>задач выполнено</span>
+                </div>
+                <Link href="/tasks" className="panel-link">
+                  Доска задач
+                  <ArrowUpRight size={15} />
+                </Link>
+                <Link href="/calendar" className="panel-link">
+                  Календарь
+                  <ArrowUpRight size={15} />
+                </Link>
               </section>
-              <section className="panel coach-note">
-                <span className="note-icon">
-                  <Check size={19} />
-                </span>
-                <h2>Работайте над главным</h2>
+              <section className="panel staff-capabilities">
+                <h2>Что уже можно</h2>
                 <p>
-                  Одна конкретная цель на тренировку полезнее десяти размытых.
-                  Определите фокус и обсудите результат с командой.
+                  Раздельные консультации, общий контекст, предложения задач с
+                  подтверждением.
                 </p>
-                <span className="eyebrow">ПАМЯТКА КАПИТАНА</span>
+                <h2>Что ещё разрабатывается</h2>
+                <p>
+                  Авторазбор демок, внешняя база игроков, актуальный поиск
+                  турниров и действия с календарём.
+                </p>
+                <p className="staff-context-note">
+                  Если модель недоступна, показывается справочный шаблон.
+                  Подключение модели настраивается администратором.
+                </p>
               </section>
             </aside>
           </div>
+          <p className="staff-announcement" role="status">
+            {announcement}
+          </p>
+          {proposal && (
+            <section
+              ref={proposalRef}
+              className="panel staff-task-form"
+              aria-labelledby="proposal-title"
+            >
+              <div className="panel-title">
+                <h2 id="proposal-title">Проверьте задачу перед сохранением</h2>
+                <button
+                  className="secondary-button"
+                  disabled={saving}
+                  onClick={() => setProposal(null)}
+                >
+                  Закрыть
+                </button>
+              </div>
+              <form onSubmit={saveTask}>
+                <label>
+                  Название
+                  <input
+                    name="title"
+                    maxLength={200}
+                    required
+                    defaultValue={proposal.value.title}
+                  />
+                </label>
+                <label>
+                  Исполнитель
+                  <input
+                    name="assignee"
+                    maxLength={100}
+                    defaultValue={proposal.value.assignee}
+                    placeholder="Не назначен"
+                  />
+                </label>
+                <label>
+                  Срок
+                  <input
+                    type="date"
+                    name="deadline"
+                    defaultValue={proposal.value.deadline}
+                  />
+                </label>
+                <Notice
+                  message={
+                    actionError ||
+                    (!teamId
+                      ? "Для сохранения подключите Supabase и создайте команду."
+                      : "")
+                  }
+                />
+                <button className="primary-button" disabled={!teamId || saving}>
+                  {saving ? "Сохраняем…" : "Подтвердить и сохранить"}
+                </button>
+              </form>
+            </section>
+          )}
         </div>
       </main>
     </div>

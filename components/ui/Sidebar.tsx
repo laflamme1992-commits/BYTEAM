@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
+import { BrandMark } from "@/components/ui/BrandMark";
+
 const navItems = [
   { icon: LayoutDashboard, label: "Обзор", href: "/dashboard" },
   { icon: Users, label: "Команда", href: "/team" },
@@ -24,7 +26,7 @@ const navItems = [
   { icon: TrendingUp, label: "Тренировки", href: "/practice" },
   { icon: Trophy, label: "Турниры", href: "/tournaments" },
   { icon: TrendingUp, label: "Прогресс", href: "/progress" },
-  { icon: Sparkles, label: "ИИ-помощник", href: "/ai" },
+  { icon: Sparkles, label: "ИИ-штаб", href: "/ai" },
 ];
 
 export function Sidebar() {
@@ -37,7 +39,7 @@ export function Sidebar() {
   return (
     <aside className="workspace-sidebar">
       <Link href="/" className="brand" aria-label="BYTEAM — главная">
-        <span className="brand-mark">B</span>
+        <BrandMark size={38} />
         <span>
           BYTEAM<small>BUILD YOUR TEAM</small>
         </span>
@@ -64,7 +66,7 @@ export function Sidebar() {
           <p>Сильнее с каждым матчем</p>
           <small>Планируйте. Тренируйтесь. Побеждайте.</small>
           <Link href="/ai">
-            Открыть помощника <ArrowUpRight size={14} />
+            Открыть ИИ-штаб <ArrowUpRight size={14} />
           </Link>
         </div>
         <Link href="/team" className="team-switch">

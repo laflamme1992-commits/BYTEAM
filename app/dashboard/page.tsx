@@ -79,7 +79,7 @@ function DashboardPageConnected() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0c1011] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0b0d12] flex items-center justify-center">
         <div className="text-white text-xl">Загрузка...</div>
       </div>
     );
@@ -87,7 +87,7 @@ function DashboardPageConnected() {
 
   if (!team) {
     return (
-      <div className="min-h-screen bg-[#0c1011] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0b0d12] flex items-center justify-center">
         <GlassCard className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-white mb-4">
             У вас пока нет команды
@@ -104,7 +104,7 @@ function DashboardPageConnected() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0c1011] flex">
+    <div className="min-h-screen bg-[#0b0d12] flex">
       <Sidebar />
 
       <main className="flex-1 ml-56 p-8">
@@ -141,7 +141,7 @@ function DashboardPageConnected() {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-400">Средний Elo</p>
-                <p className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">
+                <p className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-purple-400 bg-clip-text text-transparent">
                   {averageElo || "—"}
                 </p>
               </div>
@@ -151,7 +151,7 @@ function DashboardPageConnected() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <GlassCard className="p-4">
               <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-teal-400" />
+                <Users className="w-5 h-5 text-orange-400" />
                 <div>
                   <p className="text-xs text-gray-500">Игроков</p>
                   <p className="text-2xl font-bold text-white">
@@ -242,7 +242,7 @@ function DashboardPageConnected() {
                           {player.name}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-2 py-1 rounded-full text-xs bg-teal-500/10 text-teal-400">
+                          <span className="px-2 py-1 rounded-full text-xs bg-orange-500/10 text-orange-400">
                             {player.role}
                           </span>
                         </td>

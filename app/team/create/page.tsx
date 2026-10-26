@@ -53,8 +53,8 @@ function CreateTeamPageConnected() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c1011] flex items-center justify-center px-4">
-      <div className="bg-[#141b19] border border-[#29382f] rounded-2xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-[#0b0d12] flex items-center justify-center px-4">
+      <div className="bg-[#141821] border border-[#2b3140] rounded-2xl p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-white text-center mb-6">
           Создать команду
         </h1>
@@ -66,14 +66,14 @@ function CreateTeamPageConnected() {
           <input
             type="text"
             placeholder="Название команды"
-            className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
+            className="w-full bg-[#0b0d12] border border-[#2b3140] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
 
           <select
-            className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50"
+            className="w-full bg-[#0b0d12] border border-[#2b3140] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500/50"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
           >

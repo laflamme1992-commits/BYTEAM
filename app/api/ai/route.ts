@@ -1,5 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import {
+  buildSystemPrompt,
+  parseStaffRequest,
+  parseTaskProposal,
+  referenceReply,
+} from "@/lib/ai/staff";
 
+export async function GET() {
+  return NextResponse.json(
+    {
+      configured: Boolean(
+        process.env.OPENROUTER_API_KEY &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      ),
+      provider: "OpenRouter",
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
 export async function POST(request: NextRequest) {
   let payload: unknown;
   try {
@@ -7,143 +27,85 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Некорректный JSON" }, { status: 400 });
   }
-  const messages =
-    payload && typeof payload === "object" && "messages" in payload
-      ? payload.messages
-      : undefined;
-  let userMessage = "";
+  const parsed = parseStaffRequest(payload);
+  if (!parsed)
+    return NextResponse.json(
+      { error: "Проверьте роль, сообщения и размер контекста." },
+      { status: 400 },
+    );
+  const fallback = () =>
+    NextResponse.json({
+      ...referenceReply(parsed),
+      source: "fallback",
+      role: parsed.role,
+    });
+  if (
+    !process.env.OPENROUTER_API_KEY ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+    return fallback();
   try {
-    if (
-      !Array.isArray(messages) ||
-      messages.length === 0 ||
-      messages.length > 20 ||
-      messages.some(
-        (m: unknown) =>
-          !m ||
-          typeof m !== "object" ||
-          !("role" in m) ||
-          !["user", "assistant"].includes(String(m.role)) ||
-          !("content" in m) ||
-          typeof m.content !== "string" ||
-          !m.content.trim() ||
-          m.content.length > 4000,
-      )
-    ) {
+    // Paid model access is available only to an authenticated workspace user.
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      { cookies: { getAll: () => request.cookies.getAll(), setAll: () => {} } },
+    );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user)
       return NextResponse.json(
-        { error: "Сообщения не найдены" },
-        { status: 400 },
+        {
+          error:
+            "Войдите в аккаунт, чтобы использовать подключённую ИИ-модель.",
+        },
+        { status: 401 },
       );
-    }
-
-    // Берём последний вопрос пользователя
-    userMessage = messages[messages.length - 1]?.content || "";
-
-    // Пробуем OpenRouter (бесплатно)
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         method: "POST",
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(20000),
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "microsoft/phi-3-mini-128k-instruct", // бесплатная модель
+          model: process.env.OPENROUTER_MODEL || "openrouter/free",
           messages: [
             {
               role: "system",
-              content: `Ты — BYTEAM AI, помощник капитана киберспортивной команды по CS2.
-Отвечай на вопросы по делу, на русском языке, кратко и полезно.`,
+              content: buildSystemPrompt(parsed.role, parsed.context),
             },
-            ...messages,
+            ...parsed.messages,
           ],
-          temperature: 0.7,
-          max_tokens: 500,
+          temperature: 0.4,
+          max_tokens: 1100,
+          response_format: { type: "json_object" },
         }),
       },
     );
-
-    if (!response.ok) {
-      // Если OpenRouter не работает — возвращаем умную заглушку
-      return NextResponse.json({
-        reply: generateSmartResponse(userMessage),
-        source: "fallback",
-      });
-    }
-
+    if (!response.ok) return fallback();
     const data = await response.json();
     const content = data?.choices?.[0]?.message?.content;
-    const reply =
-      typeof content === "string" && content.trim()
-        ? content
-        : generateSmartResponse(userMessage);
+    if (typeof content !== "string") return fallback();
+    const result = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ""));
+    if (
+      typeof result.reply !== "string" ||
+      !result.reply.trim() ||
+      result.reply.length > 12000
+    )
+      return fallback();
     return NextResponse.json({
-      reply,
-      source:
-        typeof content === "string" && content.trim() ? "model" : "fallback",
+      reply: result.reply,
+      proposal: parseTaskProposal(result.proposal, parsed.role),
+      source: "model",
+      role: parsed.role,
     });
   } catch {
-    console.error("ИИ-сервис недоступен");
-    return NextResponse.json({
-      reply: generateSmartResponse(userMessage),
-      source: "fallback",
-    });
+    return fallback();
   }
-}
-
-// Функция-заглушка с умными ответами
-function generateSmartResponse(question: string): string {
-  const q = question.toLowerCase();
-
-  if (q.includes("план") || q.includes("недел")) {
-    return `Пример плана на неделю — адаптируйте нагрузку вместе с тренером:
-
-Понедельник · Индивидуальная подготовка
-30 минут разминки, 30 минут работы над точностью, 20 минут гранат на одной карте.
-
-Вторник · Командная тренировка
-Отработайте два выхода на выбранной карте и распределите роли.
-
-Среда · Разбор демо
-Выберите три проигранных раунда. Зафиксируйте причину и одно решение для каждого.
-
-Четверг · Тренировочный матч
-Проверьте отработанные выходы. После матча проведите короткий разбор.
-
-Пятница · Закрепление
-Повторите проблемные ситуации и обсудите прогресс.
-
-Выходные · Восстановление
-Оставьте время на отдых. Если запланирован турнир, скорректируйте нагрузку.
-
-Это справочный шаблон: он не учитывает календарь и доступность вашей команды.`;
-  }
-
-  if (q.includes("мираж") || q.includes("mirage")) {
-    return `🎯 BYTEAM AI: Игра на Mirage требует контроля центральной части карты. Советую:
-1. Занять контроль над "коннектором" и "паласом" на CT стороне.
-2. На T стороне — агрессивно заходить на "А" через "аппарты" или на "Б" через "андерпасс".
-3. Используйте дымовые гранаты для закрытия углов.
-4. Тренируйте выходы на "мид" — это ключевая позиция.`;
-  }
-
-  if (q.includes("даст") || q.includes("dust") || q.includes("дасте")) {
-    return `🎯 BYTEAM AI: Dust 2 — классическая карта. Ключевые моменты:
-1. На T стороне — контроль "лонга" и "ката" на А.
-2. На CT стороне — удерживайте "мид" и "катку".
-3. Используйте дым на "дверях" в "лонге" и на "миде".
-4. AWP особенно силён на этой карте — используйте "мид" и "лонг".`;
-  }
-
-  if (q.includes("инферно") || q.includes("inferno")) {
-    return `🎯 BYTEAM AI: Inferno — карта с узкими проходами. Советую:
-1. На T стороне — контроль "банана" и "мида".
-2. На CT стороне — агрессивный контроль "аппартов".
-3. Используйте молотовы для очистки "банана".
-4. Тренируйте выходы на "Б" через "комнаты".`;
-  }
-
-  return `🎯 BYTEAM AI: Отличный вопрос! Рекомендую начать с разбора демок профессиональных команд. 
-Обратите внимание на позиционирование, использование гранат и командную работу. 
-Конкретные советы зависят от карты и стиля игры вашей команды.`;
 }

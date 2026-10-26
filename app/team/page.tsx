@@ -65,7 +65,7 @@ function TeamPageConnected() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0c1011] flex">
+      <div className="min-h-screen bg-[#0b0d12] flex">
         <Sidebar />
         <main className="flex-1 ml-56 p-8">
           <div className="text-white">Загрузка...</div>
@@ -75,7 +75,7 @@ function TeamPageConnected() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0c1011] flex">
+    <div className="min-h-screen bg-[#0b0d12] flex">
       <Sidebar />
 
       <main className="flex-1 ml-56 p-8">
@@ -139,7 +139,7 @@ function TeamPageConnected() {
                           {player.name}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-2 py-1 rounded-full text-xs bg-teal-500/10 text-teal-400">
+                          <span className="px-2 py-1 rounded-full text-xs bg-orange-500/10 text-orange-400">
                             {player.role}
                           </span>
                         </td>

@@ -1,9 +1,8 @@
 .landing {
-  --mint: #7cf3cf;
-  --mint-dark: #0c1d18;
-  --muted: #919b9b;
+  --brand-accent: var(--accent);
+  --muted: #a4a9b5;
   --line: #ffffff12;
-  color: #f0f3ef;
+  color: #eff0f3;
   background: #0c1011;
   overflow: clip;
 }
@@ -17,8 +16,8 @@
   left: 12px;
   padding: 12px 20px;
   border-radius: 6px;
-  background: var(--mint);
-  color: #10221d;
+  background: var(--brand-accent);
+  color: #15171d;
   transform: translateY(-150%);
 }
 .skipLink:focus {
@@ -46,14 +45,14 @@
 }
 .logoMark {
   display: inline-block;
-  color: var(--mint);
+  color: var(--brand-accent);
   font-weight: 900;
   font-style: italic;
   font-size: 34px;
   line-height: 1;
   letter-spacing: -4px;
   margin-right: 6px;
-  text-shadow: 2px 2px #1d634f;
+  text-shadow: 2px 2px #353b4b;
 }
 .logo small {
   font-size: 8px;
@@ -62,9 +61,9 @@
   font-weight: 500;
   padding: 5px 6px;
   margin-left: 3px;
-  background: #192521;
-  border: 1px solid #2a3d34;
-  color: #94c4ad;
+  background: #1a1c24;
+  border: 1px solid #2b2f3c;
+  color: #a2a9b6;
   border-radius: 4px;
 }
 .navLinks {
@@ -72,7 +71,7 @@
   gap: 30px;
   margin: auto;
   font-size: 11px;
-  color: #909b99;
+  color: #90949b;
 }
 .navLinks a {
   display: flex;
@@ -81,7 +80,7 @@
 }
 .navLinks a:hover,
 .loginLink:hover {
-  color: var(--mint);
+  color: var(--brand-accent);
 }
 .navActions {
   display: flex;
@@ -90,20 +89,20 @@
   font-size: 12px;
 }
 .loginLink {
-  color: #c9ceca;
+  color: #c9cbce;
 }
 .navCta {
   display: inline-flex;
   align-items: center;
   gap: 13px;
-  border: 1px solid #7cf3cf60;
-  background: #7cf3cf0c;
-  color: var(--mint);
+  border: 1px solid #fb945060;
+  background: #fb94500c;
+  color: var(--brand-accent);
   border-radius: 5px;
   padding: 10px 16px;
 }
 .navCta:hover {
-  background: #7cf3cf20;
+  background: #fb945020;
 }
 .hero {
   max-width: 1360px;
@@ -123,14 +122,14 @@
   right: -220px;
   top: -180px;
   border-radius: 50%;
-  background: radial-gradient(circle, #4ae6b808, transparent 65%);
+  background: radial-gradient(circle, #fa7d2908, transparent 65%);
   pointer-events: none;
 }
 .kicker {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #adbbb3;
+  color: #adb2bb;
   font-size: 8px;
   font-weight: 600;
   letter-spacing: 1.8px;
@@ -139,8 +138,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--mint);
-  box-shadow: 0 0 15px #7cf3cf70;
+  background: var(--brand-accent);
+  box-shadow: 0 0 15px #fb945070;
   flex-shrink: 0;
 }
 .hero h1 {
@@ -152,7 +151,7 @@
   position: relative;
 }
 .hero h1 > span:first-of-type {
-  color: var(--mint);
+  color: var(--brand-accent);
 }
 .hero h1 .heroPeriod {
   width: 0.9em;
@@ -168,7 +167,7 @@
   font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.6px;
-  color: #e3e8e1;
+  color: #e1e3e8;
   margin-bottom: 18px;
 }
 .heroDescription {
@@ -190,18 +189,18 @@
   justify-content: center;
   gap: 22px;
   padding: 15px 21px;
-  color: #0e241b;
-  background: var(--mint);
-  border: 1px solid var(--mint);
+  color: #15171d;
+  background: var(--brand-accent);
+  border: 1px solid var(--brand-accent);
   border-radius: 5px;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 6px 26px #7cf3cf0d;
+  box-shadow: 0 6px 26px #fb94500d;
 }
 .cta:hover {
-  background: #a1f8df;
-  border-color: #a1f8df;
+  background: #fbab75;
+  border-color: #fbab75;
   transform: translateY(-1px);
 }
 .explore {
@@ -209,11 +208,11 @@
   align-items: center;
   gap: 9px;
   font-size: 11px;
-  color: #c8d2cc;
+  color: #c8cbd2;
   white-space: nowrap;
 }
 .explore:hover {
-  color: var(--mint);
+  color: var(--brand-accent);
 }
 .heroNote {
   margin-top: 23px;
@@ -221,7 +220,7 @@
   align-items: center;
   gap: 11px;
   font-size: 9px;
-  color: #6e7d76;
+  color: #6e737d;
 }
 .heroNote > span:first-child {
   display: flex;
@@ -229,13 +228,13 @@
   gap: 5px;
 }
 .heroNote svg {
-  color: #79ad94;
+  color: #868fa0;
 }
 .heroNote > i {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #3b4d44;
+  background: #383e50;
 }
 .toolStrip {
   display: flex;
@@ -249,7 +248,7 @@
   gap: 20px;
 }
 .stripCaption {
-  color: #64766e;
+  color: #646a76;
   font-size: 8px;
   letter-spacing: 1.6px;
   line-height: 1.8;
@@ -258,14 +257,14 @@
   display: flex;
   align-items: center;
   gap: 11px;
-  color: #a4b2aa;
+  color: #a4a9b2;
   font-size: 12px;
 }
 .stripItem svg {
-  color: #5d7a6b;
+  color: #5f6778;
 }
 .stripEnd {
-  color: #335b48;
+  color: #3b4153;
 }
 .features {
   max-width: 1360px;
@@ -284,7 +283,7 @@
   display: block;
   font-size: 8px;
   letter-spacing: 1.8px;
-  color: #6c9282;
+  color: #707a8e;
   font-weight: 600;
   line-height: 1.7;
 }
@@ -297,7 +296,7 @@
   margin-top: 17px;
 }
 .sectionHeading > p {
-  color: #84938a;
+  color: #848993;
   max-width: 300px;
   font-size: 12px;
   line-height: 1.9;
@@ -312,10 +311,10 @@
   display: flex;
   flex-direction: column;
   min-height: 290px;
-  border: 1px solid #26332c;
+  border: 1px solid #252934;
   border-radius: 8px;
   padding: 26px;
-  background: linear-gradient(125deg, #14201a60, #101715);
+  background: linear-gradient(125deg, #16181e60, #101217);
 }
 .featureTop {
   display: flex;
@@ -323,7 +322,7 @@
   justify-content: space-between;
 }
 .featureTop > span:last-child {
-  color: #4b6658;
+  color: #4e5563;
   font-size: 10px;
   font-family: monospace;
 }
@@ -332,9 +331,9 @@
   place-items: center;
   width: 45px;
   height: 45px;
-  background: #7cf3cf0c;
-  color: #7cf3cf;
-  border: 1px solid #7cf3cf1a;
+  background: #fb94500c;
+  color: #fb9450;
+  border: 1px solid #fb94501a;
   border-radius: 9px;
 }
 .feature h3 {
@@ -347,7 +346,7 @@
 }
 .feature p {
   font-size: 11px;
-  color: #83978b;
+  color: #838a97;
   line-height: 1.95;
   margin-top: 12px;
   margin-bottom: 28px;
@@ -357,13 +356,13 @@
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  color: #9fd9bd;
+  color: #fb9958;
   font-size: 11px;
   border-top: 1px solid #ffffff0c;
   padding-top: 18px;
 }
 .feature a:hover {
-  color: #d1f9e3;
+  color: #fdc5a0;
 }
 .tasks {
   background: linear-gradient(125deg, #201a2b65, #14131b);
@@ -416,13 +415,13 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--mint);
+  color: var(--brand-accent);
   font-size: 12px;
   margin-top: 28px;
   width: fit-content;
 }
 .workflowIntro > a:hover {
-  color: #c4ffeb;
+  color: #fcc19a;
 }
 .workflow ol {
   display: flex;
@@ -435,7 +434,7 @@
   align-items: flex-start;
 }
 .workflow li > span {
-  color: #5b7e6d;
+  color: #5f687a;
   font-size: 12px;
   font-family: monospace;
   margin-top: 2px;
@@ -446,7 +445,7 @@
   margin-bottom: 8px;
 }
 .workflow li p {
-  color: #82948a;
+  color: #828894;
   font-size: 11px;
   line-height: 1.9;
   max-width: 380px;
@@ -459,8 +458,8 @@
   justify-content: space-between;
   gap: 32px;
   background:
-    radial-gradient(ellipse at 0% 100%, #19453540, transparent 70%), #111b16;
-  border: 1px solid #30473a;
+    radial-gradient(ellipse at 0% 100%, #272b3740, transparent 70%), #12141a;
+  border: 1px solid #313646;
   border-radius: 10px;
   padding: 40px;
 }
@@ -468,7 +467,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #6caa8a;
+  color: #7d8699;
   gap: 12px;
 }
 .ctaSymbol span {
@@ -494,7 +493,7 @@
   max-width: 1264px;
   margin: auto;
   padding: 28px 0;
-  color: #5b7164;
+  color: #5b6271;
   font-size: 10px;
 }
 .footerBrand {
@@ -504,7 +503,7 @@
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: #c2d1c5;
+  color: #c3c7d0;
 }
 .footerBrand .logoMark {
   font-size: 23px;
@@ -515,7 +514,7 @@
   margin-left: auto;
 }
 .footer a:hover {
-  color: #b2ebcf;
+  color: #fcad78;
 }
 @media (min-width: 1500px) {
   .hero {
@@ -816,5 +815,61 @@
 @media (prefers-reduced-motion: reduce) {
   .cta {
     transform: none;
+  }
+}
+/* Readable captions and tap targets, including mobile navigation. */
+.sectionLabel,
+.kicker,
+.stripCaption {
+  color: #b5bac7;
+}
+.heroNote,
+.workflow li > span,
+.footer,
+.featureTop > span:last-child {
+  color: #a8afbd;
+}
+.footerBrand .logoMark {
+  width: 26px;
+  height: 26px;
+}
+.navLinks a,
+.loginLink,
+.explore,
+.workflowIntro > a,
+.footer > div > a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+@media (max-width: 640px) {
+  .logoMark {
+    width: 32px;
+    height: 32px;
+  }
+  .kicker,
+  .sectionLabel {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .heroNote {
+    font-size: 11px;
+    line-height: 1.8;
+  }
+  .footer {
+    font-size: 11px;
+  }
+  .stripCaption {
+    font-size: 10px;
+  }
+  .sloganTranslation {
+    font-size: 21px;
+    line-height: 1.5;
+  }
+  .heroDescription {
+    font-size: 14px;
+  }
+  .feature p {
+    font-size: 13px;
   }
 }

@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { WorkspacePreview } from "@/components/landing/WorkspacePreview";
+import { BrandMark } from "@/components/ui/BrandMark";
 import styles from "./landing.module.css";
 
 const features = [
@@ -42,9 +43,9 @@ const features = [
     number: "03",
     title: "Есть вопрос? Разберём вместе.",
     description:
-      "Обсудите с ИИ-помощником тренировочный план, тактику или подготовку к турниру. Решения остаются за командой.",
+      "Обсудите с ИИ-штабом тренировочный план, тактику или подготовку к турниру. Решения остаются за командой.",
     href: "/ai",
-    link: "Познакомиться с помощником",
+    link: "Познакомиться со штабом",
     className: "assistant",
   },
 ];
@@ -58,7 +59,7 @@ export default function Home() {
       <header className={styles.header}>
         <nav className={styles.nav} aria-label="Навигация главной страницы">
           <Link className={styles.logo} href="/" aria-label="BYTEAM — главная">
-            <span className={styles.logoMark}>B</span>
+            <BrandMark className={styles.logoMark} size={36} />
             <span>BYTEAM</span>
             <small>БЕТА</small>
           </Link>
@@ -66,7 +67,7 @@ export default function Home() {
             <a href="#features">Возможности</a>
             <a href="#workflow">Как это работает</a>
             <Link href="/ai">
-              ИИ-помощник
+              ИИ-штаб
               <Sparkles size={12} />
             </Link>
           </div>
@@ -81,12 +82,12 @@ export default function Home() {
           </div>
         </nav>
       </header>
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <section className={styles.hero} aria-labelledby="hero-title">
           <div className={styles.heroCopy}>
             <div className={styles.kicker}>
               <i />
-              ПРОСТРАНСТВО ДЛЯ ТЕХ, КТО ИГРАЕТ ВМЕСТЕ.
+              ВАША КОМАНДА. ВАШ ИИ-ШТАБ.
             </div>
             <h1 id="hero-title" lang="en" aria-label="Build your team.">
               Build your
@@ -98,10 +99,13 @@ export default function Home() {
                 strokeWidth={1.3}
               />
             </h1>
-            <p className={styles.sloganTranslation}>Собери свою команду.</p>
+            <p className={styles.sloganTranslation}>
+              Собери свою команду. Развивайся с ИИ.
+            </p>
             <p className={styles.heroDescription}>
-              Меньше переписок — больше игры. Соберите состав, тренировки и
-              задачи в одном пространстве. Дальше — только вместе.
+              Менеджер, скаут, тренер, аналитик и помощник по спортивной
+              психологии — в одном пространстве. Организуйте игру и превратите
+              советы в план действий.
             </p>
             <div className={styles.heroActions}>
               <Link href="/register" className={styles.cta}>
@@ -135,7 +139,7 @@ export default function Home() {
             { icon: CalendarDays, text: "Расписание" },
             { icon: Crosshair, text: "Тренировки" },
             { icon: Trophy, text: "Турниры" },
-            { icon: Sparkles, text: "ИИ-помощник" },
+            { icon: Sparkles, text: "ИИ-штаб" },
           ].map(({ icon: Icon, text }) => (
             <span key={text} className={styles.stripItem}>
               <Icon size={19} />
@@ -254,7 +258,8 @@ export default function Home() {
       </main>
       <footer className={styles.footer}>
         <Link href="/" className={styles.footerBrand}>
-          <span className={styles.logoMark}>B</span>BYTEAM
+          <BrandMark className={styles.logoMark} size={36} />
+          BYTEAM
         </Link>
         <span>Для тех, кто играет командой.</span>
         <div>

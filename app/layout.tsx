@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BYTEAM — управление командой",
+  title: "BYTEAM — ваш ИИ-штаб",
   description:
-    "Планируйте тренировки, управляйте задачами и развивайте команду.",
+    "Build your team. Менеджер, скаут, тренер, аналитик и помощь с командным взаимодействием для вашей команды CS2.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

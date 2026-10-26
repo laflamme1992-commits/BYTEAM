@@ -16,10 +16,12 @@ import {
   Users,
 } from "lucide-react";
 
+import { BrandMark } from "@/components/ui/BrandMark";
+
 const tabs = [
   { id: "calendar", label: "Календарь", icon: CalendarDays },
   { id: "tasks", label: "Задачи", icon: CheckSquare },
-  { id: "ai", label: "ИИ-помощник", icon: Sparkles },
+  { id: "ai", label: "ИИ-штаб", icon: Sparkles },
 ] as const;
 type Tab = (typeof tabs)[number]["id"];
 
@@ -50,7 +52,7 @@ export function WorkspacePreview() {
         </div>
         <div className="preview-body">
           <aside className="preview-sidebar" aria-hidden="true">
-            <span className="preview-mini-brand">B</span>
+            <BrandMark className="preview-mini-brand" size={25} />
             <LayoutDashboard size={17} />
             <Users size={17} />
             <CalendarDays
@@ -228,7 +230,7 @@ export function WorkspacePreview() {
                   <div className="preview-answer">
                     <span>
                       <Sparkles size={15} />
-                      BYTEAM · ИИ-помощник
+                      BYTEAM · ИИ-штаб
                     </span>
                     <p>Начните с конкретного плана:</p>
                     {[
