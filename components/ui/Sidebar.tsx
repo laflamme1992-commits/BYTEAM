@@ -1,71 +1,85 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, Users, Calendar, CheckSquare, 
-  Trophy, TrendingUp, Bot, LogOut 
-} from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  CheckSquare,
+  Trophy,
+  TrendingUp,
+  Sparkles,
+  LogOut,
+  ArrowUpRight,
+  Shield,
+} from "lucide-react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Панель', href: '/dashboard' },
-  { icon: Users, label: 'Команда', href: '/team' },
-  { icon: Calendar, label: 'Календарь', href: '/calendar' },
-  { icon: CheckSquare, label: 'Задачи', href: '/tasks' },
-  { icon: TrendingUp, label: 'Тренировки', href: '/practice' },
-  { icon: Trophy, label: 'Турниры', href: '/tournaments' },
-  { icon: Bot, label: 'ИИ', href: '/ai' },
+  { icon: LayoutDashboard, label: "Обзор", href: "/dashboard" },
+  { icon: Users, label: "Команда", href: "/team" },
+  { icon: Calendar, label: "Календарь", href: "/calendar" },
+  { icon: CheckSquare, label: "Задачи", href: "/tasks" },
+  { icon: TrendingUp, label: "Тренировки", href: "/practice" },
+  { icon: Trophy, label: "Турниры", href: "/tournaments" },
+  { icon: TrendingUp, label: "Прогресс", href: "/progress" },
+  { icon: Sparkles, label: "ИИ-помощник", href: "/ai" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
+    if (isSupabaseConfigured) await createClient().auth.signOut();
+    router.push("/login");
   };
-
   return (
-    <aside className="w-56 bg-[#0f1622]/90 backdrop-blur-md border-r border-white/5 h-screen fixed left-0 top-0 p-4 flex flex-col">
-      {/* Логотип */}
-      <div className="flex flex-col items-center mb-8 px-2">
-  <img src="/logo.png" alt="BYTEAM" className="h-40 w-auto" />
-  <span className="text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/20 mt-1">
-    БЕТА
-  </span>
-</div>
-
-      <nav className="flex-1 space-y-1">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                isActive
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          );
-        })}
+    <aside className="workspace-sidebar">
+      <Link href="/" className="brand" aria-label="BYTEAM — главная">
+        <span className="brand-mark">B</span>
+        <span>
+          BYTEAM<small>ПРОСТРАНСТВО КОМАНДЫ</small>
+        </span>
+      </Link>
+      <div className="nav-caption">УПРАВЛЕНИЕ</div>
+      <nav aria-label="Основное меню">
+        {navItems.map(({ icon: Icon, label, href }) => (
+          <Link
+            key={href}
+            href={href}
+            aria-label={label}
+            aria-current={pathname === href ? "page" : undefined}
+            className={`nav-link ${pathname === href ? "active" : ""}`}
+          >
+            <Icon size={19} />
+            <span>{label}</span>
+            {href === "/ai" && <span className="nav-ai">ИИ</span>}
+          </Link>
+        ))}
       </nav>
-
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-400/10 transition-all w-full"
-      >
-        <LogOut className="w-4 h-4" />
-        Выйти
-      </button>
+      <div className="sidebar-bottom">
+        <div className="sidebar-promo">
+          <Sparkles size={20} />
+          <p>Сильнее с каждым матчем</p>
+          <small>Планируйте. Тренируйтесь. Побеждайте.</small>
+          <Link href="/ai">
+            Открыть помощника <ArrowUpRight size={14} />
+          </Link>
+        </div>
+        <Link href="/team" className="team-switch">
+          <span className="team-emblem">
+            <Shield size={22} />
+          </span>
+          <span>
+            Моя команда<small>Командное пространство</small>
+          </span>
+        </Link>
+        <button onClick={handleLogout} className="nav-link logout">
+          <LogOut size={18} />
+          Выйти из аккаунта
+        </button>
+      </div>
     </aside>
   );
 }

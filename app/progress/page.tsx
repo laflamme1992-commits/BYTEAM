@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Sidebar } from '@/components/ui/Sidebar';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { Button } from '@/components/ui/Button';
-import { Target, Trophy, Medal, TrendingUp, Clock, Award, CheckCircle, Lock } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ConnectionRequired } from "@/components/workspace/ConnectionRequired";
+import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/ui/Sidebar";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Trophy, Medal, TrendingUp, Clock, Award } from "lucide-react";
 
 interface Team {
   id: string;
@@ -24,6 +25,14 @@ interface Player {
 }
 
 export default function ProgressPage() {
+  return isSupabaseConfigured ? (
+    <ProgressPageConnected />
+  ) : (
+    <ConnectionRequired />
+  );
+}
+
+function ProgressPageConnected() {
   const [team, setTeam] = useState<Team | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,24 +41,26 @@ export default function ProgressPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
       const { data: teamData } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('captain_id', user.id)
+        .from("teams")
+        .select("*")
+        .eq("captain_id", user.id)
         .single();
 
       if (teamData) {
         setTeam(teamData);
         const { data: playersData } = await supabase
-          .from('players')
-          .select('*')
-          .eq('team_id', teamData.id);
+          .from("players")
+          .select("*")
+          .eq("team_id", teamData.id);
         if (playersData) setPlayers(playersData);
       }
       setLoading(false);
@@ -58,15 +69,15 @@ export default function ProgressPage() {
     fetchData();
   }, [supabase, router]);
 
-  const averageElo = players.length > 0
-    ? Math.round(players.reduce((sum, p) => sum + p.elo, 0) / players.length)
-    : 0;
-
-  const onlinePlayers = players.filter(p => p.status === 'онлайн').length;
+  const averageElo =
+    players.length > 0
+      ? Math.round(players.reduce((sum, p) => sum + p.elo, 0) / players.length)
+      : 0;
 
   const goal = 2500;
   const current = averageElo;
-  const progress = goal > 0 ? Math.min(Math.round((current / goal) * 100), 100) : 0;
+  const progress =
+    goal > 0 ? Math.min(Math.round((current / goal) * 100), 100) : 0;
 
   if (loading) {
     return (
@@ -85,9 +96,15 @@ export default function ProgressPage() {
         <Sidebar />
         <main className="flex-1 ml-56 p-8 flex items-center justify-center">
           <GlassCard className="text-center max-w-md">
-            <h2 className="text-2xl font-bold text-white mb-4">Создайте команду</h2>
-            <p className="text-gray-400 mb-6">Чтобы видеть прогресс, сначала создайте команду</p>
-            <Button onClick={() => router.push('/team/create')}>Создать команду</Button>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Создайте команду
+            </h2>
+            <p className="text-gray-400 mb-6">
+              Чтобы видеть прогресс, сначала создайте команду
+            </p>
+            <Button onClick={() => router.push("/team/create")}>
+              Создать команду
+            </Button>
           </GlassCard>
         </main>
       </div>
@@ -95,30 +112,64 @@ export default function ProgressPage() {
   }
 
   const achievements = [
-    { icon: '🏆', title: 'Первая победа', desc: 'Выиграйте первый матч', unlocked: true },
-    { icon: '🎯', title: 'Точный стрелок', desc: '30+ фрагов в матче', unlocked: true },
-    { icon: '👑', title: 'Лидер', desc: 'Станьте капитаном команды', unlocked: true },
-    { icon: '💪', title: 'Команда мечты', desc: 'Соберите 5 игроков', unlocked: players.length >= 5 },
-    { icon: '🏅', title: 'Турнирный боец', desc: 'Участвуйте в 10 турнирах', unlocked: false },
-    { icon: '⭐', title: 'Звездный игрок', desc: 'Достигните 2500 Elo', unlocked: current >= 2500 },
+    {
+      icon: "🏆",
+      title: "Первая победа",
+      desc: "Выиграйте первый матч",
+      unlocked: true,
+    },
+    {
+      icon: "🎯",
+      title: "Точный стрелок",
+      desc: "30+ фрагов в матче",
+      unlocked: true,
+    },
+    {
+      icon: "👑",
+      title: "Лидер",
+      desc: "Станьте капитаном команды",
+      unlocked: true,
+    },
+    {
+      icon: "💪",
+      title: "Команда мечты",
+      desc: "Соберите 5 игроков",
+      unlocked: players.length >= 5,
+    },
+    {
+      icon: "🏅",
+      title: "Турнирный боец",
+      desc: "Участвуйте в 10 турнирах",
+      unlocked: false,
+    },
+    {
+      icon: "⭐",
+      title: "Звездный игрок",
+      desc: "Достигните 2500 Elo",
+      unlocked: current >= 2500,
+    },
   ];
 
   return (
     <div className="min-h-screen bg-[#0a0e17] flex">
       <Sidebar />
-      
+
       <main className="flex-1 ml-56 p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white">Прогресс</h1>
-            <p className="text-gray-400">Отслеживай цели и достижения команды</p>
+            <p className="text-gray-400">
+              Отслеживай цели и достижения команды
+            </p>
           </div>
 
           <GlassCard className="mb-8">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-sm text-gray-400">Главная цель команды</h2>
-                <p className="text-2xl font-bold text-white mt-1">{goal} Средний Elo</p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {goal} Средний Elo
+                </p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-400">Прогресс</p>
@@ -126,7 +177,10 @@ export default function ProgressPage() {
               </div>
             </div>
             <div className="mt-4 w-full h-3 bg-[#1a2332] rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
+                style={{ width: `${progress}%` }}
+              />
             </div>
             <div className="flex justify-between mt-2 text-sm text-gray-400">
               <span>Сейчас: {current || 0}</span>
@@ -175,17 +229,21 @@ export default function ProgressPage() {
                 key={index}
                 className={`p-6 text-center transition-all ${
                   ach.unlocked
-                    ? 'border-yellow-500/30 hover:border-yellow-400/50'
-                    : 'opacity-50'
+                    ? "border-yellow-500/30 hover:border-yellow-400/50"
+                    : "opacity-50"
                 }`}
               >
                 <div className="text-4xl mb-2">{ach.icon}</div>
                 <h3 className="text-white font-medium">{ach.title}</h3>
                 <p className="text-xs text-gray-500 mt-1">{ach.desc}</p>
                 {ach.unlocked ? (
-                  <span className="inline-block mt-3 text-xs text-green-400">✅ Получено</span>
+                  <span className="inline-block mt-3 text-xs text-green-400">
+                    ✅ Получено
+                  </span>
                 ) : (
-                  <span className="inline-block mt-3 text-xs text-gray-500">🔒 Заблокировано</span>
+                  <span className="inline-block mt-3 text-xs text-gray-500">
+                    🔒 Заблокировано
+                  </span>
                 )}
               </GlassCard>
             ))}

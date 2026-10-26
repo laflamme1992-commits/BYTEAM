@@ -1,266 +1,595 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Sidebar } from '@/components/ui/Sidebar';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { Button } from '@/components/ui/Button';
-import { Plus, Calendar as CalendarIcon, Clock, MapPin, Users } from 'lucide-react';
+import { FormEvent, useState } from "react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  X,
+  Filter,
+  Clock,
+  MapPin,
+  Users,
+  Trash2,
+} from "lucide-react";
+import { Sidebar } from "@/components/ui/Sidebar";
+import { Header } from "@/components/workspace/Header";
+import { ModalBackdrop } from "@/components/workspace/ModalBackdrop";
+import { Notice } from "@/components/workspace/Notice";
+import { useTeamData } from "@/lib/hooks/useTeamData";
+import { createClient } from "@/lib/supabase/client";
 
-interface Event {
+type EventType = "training" | "match" | "tournament" | "meeting";
+interface TeamEvent {
   id: string;
   title: string;
-  type: 'training' | 'match' | 'tournament' | 'meeting';
+  type: EventType;
   date: string;
   time: string;
   location: string;
   participants: string;
   team_id: string;
 }
-
-const eventTypeMap = {
-  training: { label: 'Тренировка', color: 'bg-blue-500/10 text-blue-400' },
-  match: { label: 'Матч', color: 'bg-green-500/10 text-green-400' },
-  tournament: { label: 'Турнир', color: 'bg-purple-500/10 text-purple-400' },
-  meeting: { label: 'Встреча', color: 'bg-yellow-500/10 text-yellow-400' },
+const types: Record<EventType, { label: string; color: string }> = {
+  training: { label: "Тренировка", color: "blue" },
+  match: { label: "Матч", color: "green" },
+  tournament: { label: "Турнир", color: "purple" },
+  meeting: { label: "Встреча", color: "amber" },
 };
-
+const dateKey = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 export default function CalendarPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [teamId, setTeamId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newType, setNewType] = useState<Event['type']>('training');
-  const [newDate, setNewDate] = useState('');
-  const [newTime, setNewTime] = useState('');
-  const [newLocation, setNewLocation] = useState('');
-  const [newParticipants, setNewParticipants] = useState('');
-  const supabase = createClient();
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      const { data: team } = await supabase
-        .from('teams')
-        .select('id')
-        .eq('captain_id', user.id)
-        .single();
-
-      if (team) {
-        setTeamId(team.id);
-        const { data: eventsData } = await supabase
-          .from('events')
-          .select('*')
-          .eq('team_id', team.id)
-          .order('date', { ascending: true });
-        if (eventsData) setEvents(eventsData);
-      }
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [supabase, router]);
-
-  const addEvent = async () => {
-    if (!teamId || !newTitle.trim()) return;
-
-    const { data, error } = await supabase
-      .from('events')
-      .insert([{
-        team_id: teamId,
-        title: newTitle,
-        type: newType,
-        date: newDate || 'Без даты',
-        time: newTime || '—',
-        location: newLocation || '—',
-        participants: newParticipants || '—',
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      alert('Ошибка: ' + error.message);
-    } else if (data) {
-      setEvents([...events, data]);
-      setNewTitle('');
-      setNewType('training');
-      setNewDate('');
-      setNewTime('');
-      setNewLocation('');
-      setNewParticipants('');
-      setShowForm(false);
-    }
-  };
-
-  const deleteEvent = async (id: string) => {
-    if (!confirm('Удалить событие?')) return;
-
-    const { error } = await supabase
-      .from('events')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      alert('Ошибка: ' + error.message);
-    } else {
-      setEvents(events.filter(e => e.id !== id));
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0a0e17] flex">
-        <Sidebar />
-        <main className="flex-1 ml-56 p-8">
-          <div className="text-white">Загрузка...</div>
-        </main>
-      </div>
-    );
+  const {
+    items: events,
+    setItems: setEvents,
+    teamId,
+    loading,
+    error,
+    setError,
+    reload,
+  } = useTeamData<TeamEvent>("events");
+  const [cursor, setCursor] = useState(() => new Date());
+  const [view, setView] = useState<"month" | "week">("month");
+  const [enabled, setEnabled] = useState<EventType[]>(
+    Object.keys(types) as EventType[],
+  );
+  const [formDate, setFormDate] = useState<string | null>(null);
+  const [selected, setSelected] = useState<TeamEvent | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const today = dateKey(new Date());
+  const anchor =
+    view === "month"
+      ? new Date(cursor.getFullYear(), cursor.getMonth(), 1)
+      : new Date(cursor);
+  const first = new Date(anchor);
+  first.setDate(first.getDate() - ((first.getDay() + 6) % 7));
+  const days = Array.from({ length: view === "month" ? 42 : 7 }, (_, i) => {
+    const d = new Date(first);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const visibleEvents = events.filter((e) => enabled.includes(e.type));
+  const upcoming = [...visibleEvents]
+    .filter((e) => e.date >= today && /^\d{4}-\d{2}-\d{2}$/.test(e.date))
+    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+    .slice(0, 4);
+  // Only compare concrete participant names at the exact same scheduled time.
+  const conflicts = events.flatMap((a, i) =>
+    events
+      .slice(i + 1)
+      .filter(
+        (b) =>
+          a.date === b.date &&
+          /^\d{4}-\d{2}-\d{2}$/.test(a.date) &&
+          /^\d{2}:\d{2}$/.test(a.time) &&
+          a.time === b.time &&
+          a.participants &&
+          a.participants !== "—" &&
+          a.participants.split(",").some(
+            (p) =>
+              p.trim() &&
+              b.participants
+                .toLowerCase()
+                .split(",")
+                .map((n) => n.trim())
+                .includes(p.trim().toLowerCase()),
+          ),
+      )
+      .map((b) => ({ a, b })),
+  );
+  function navigate(direction: number) {
+    const next = new Date(cursor);
+    if (view === "month") {
+      next.setDate(1);
+      next.setMonth(next.getMonth() + direction);
+    } else next.setDate(next.getDate() + direction * 7);
+    setCursor(next);
   }
-
+  async function addEvent(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!teamId || busy) return;
+    const fields = new FormData(e.currentTarget);
+    const title = String(fields.get("title") || "").trim();
+    if (!title) return;
+    setBusy(true);
+    try {
+      const { data, error } = await createClient()
+        .from("events")
+        .insert({
+          team_id: teamId,
+          title,
+          type: fields.get("type"),
+          date: fields.get("date"),
+          time: fields.get("time") || "—",
+          location: String(fields.get("location") || "").trim() || "—",
+          participants: String(fields.get("participants") || "").trim() || "—",
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      setEvents((prev) => [...prev, data]);
+      setCursor(new Date(data.date + "T12:00:00"));
+      setFormDate(null);
+      setError("");
+    } catch {
+      setError("Не удалось сохранить событие. Попробуйте снова.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function deleteEvent() {
+    if (!selected || busy) return;
+    setBusy(true);
+    try {
+      const { error } = await createClient()
+        .from("events")
+        .delete()
+        .eq("id", selected.id)
+        .eq("team_id", teamId!);
+      if (error) throw error;
+      setEvents((prev) => prev.filter((e) => e.id !== selected.id));
+      setSelected(null);
+      setConfirmDelete(false);
+      setError("");
+    } catch {
+      setError("Не удалось удалить событие.");
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex">
+    <div className="workspace">
       <Sidebar />
-      
-      <main className="flex-1 ml-56 p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Календарь</h1>
-              <p className="text-gray-400">Расписание команды</p>
-            </div>
-            <Button 
-              onClick={() => setShowForm(!showForm)}
-              className="gap-2"
+      <main className="workspace-main">
+        <Header
+          title="Календарь"
+          subtitle="Планируйте вместе. Побеждайте командой."
+        >
+          <div className="segmented">
+            <button
+              aria-pressed={view === "week"}
+              onClick={() => setView("week")}
             >
-              <Plus className="w-4 h-4" />
-              Добавить событие
-            </Button>
+              Неделя
+            </button>
+            <button
+              aria-pressed={view === "month"}
+              onClick={() => setView("month")}
+            >
+              Месяц
+            </button>
           </div>
-
-          {showForm && (
-            <GlassCard className="mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Новое событие</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Название"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                />
-                <select
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value as Event['type'])}
+          <button
+            className="primary-button"
+            disabled={!teamId}
+            onClick={() => setFormDate(today)}
+          >
+            <Plus size={18} />
+            Новое событие
+          </button>
+        </Header>
+        <div className="workspace-content">
+          <Notice message={error} retry={reload} />
+          <div className="calendar-layout">
+            <section className="calendar-section">
+              <div className="calendar-heading">
+                <h2>
+                  <CalendarDays size={21} />
+                  {cursor.toLocaleDateString("ru-RU", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </h2>
+                <div className="calendar-navigation">
+                  <button
+                    className="secondary-button"
+                    onClick={() => setCursor(new Date())}
+                  >
+                    Сегодня
+                  </button>
+                  <div className="segmented">
+                    <button
+                      aria-label="Предыдущий период"
+                      onClick={() => navigate(-1)}
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      aria-label="Следующий период"
+                      onClick={() => navigate(1)}
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {loading ? (
+                <div className="empty-state">Загружаем расписание…</div>
+              ) : (
+                <div className="calendar-scroll">
+                  <div
+                    className={`calendar-grid ${view === "week" ? "week-view" : ""}`}
+                  >
+                    <div className="calendar-weekdays">
+                      {["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"].map((d) => (
+                        <span key={d}>{d}</span>
+                      ))}
+                    </div>
+                    <div className="calendar-days">
+                      {days.map((day) => {
+                        const key = dateKey(day);
+                        const dayEvents = visibleEvents
+                          .filter((e) => e.date === key)
+                          .sort((a, b) => a.time.localeCompare(b.time));
+                        return (
+                          <div
+                            key={key}
+                            className={`calendar-day ${day.getMonth() !== cursor.getMonth() ? "outside" : ""} ${key === today ? "today" : ""}`}
+                          >
+                            <button
+                              disabled={!teamId}
+                              className="day-number"
+                              aria-label={`Добавить событие: ${day.toLocaleDateString("ru-RU")}`}
+                              onClick={() => setFormDate(key)}
+                            >
+                              {day.getDate()}
+                            </button>
+                            {dayEvents.map((event) => (
+                              <button
+                                className={`calendar-event ${types[event.type]?.color || "blue"}`}
+                                key={event.id}
+                                onClick={() => {
+                                  setSelected(event);
+                                  setConfirmDelete(false);
+                                }}
+                              >
+                                <strong>{event.title}</strong>
+                                <span>
+                                  {event.time === "—"
+                                    ? "Весь день"
+                                    : event.time}
+                                </span>
+                                <small>
+                                  {types[event.type]?.label || event.type}
+                                </small>
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="calendar-filters">
+                <span>
+                  <Filter size={16} />
+                  Типы событий
+                </span>
+                {(Object.keys(types) as EventType[]).map((type) => (
+                  <button
+                    aria-pressed={enabled.includes(type)}
+                    className={`filter-chip ${types[type].color}`}
+                    key={type}
+                    onClick={() =>
+                      setEnabled((prev) =>
+                        prev.includes(type)
+                          ? prev.filter((t) => t !== type)
+                          : [...prev, type],
+                      )
+                    }
+                  >
+                    <i />
+                    {types[type].label}
+                    {enabled.includes(type) && <X size={12} />}
+                  </button>
+                ))}
+                <button
+                  className="filter-reset"
+                  onClick={() => setEnabled(Object.keys(types) as EventType[])}
                 >
-                  <option value="training">Тренировка</option>
-                  <option value="match">Матч</option>
-                  <option value="tournament">Турнир</option>
-                  <option value="meeting">Встреча</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Дата (например, 31 авг)"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="Время (например, 20:00)"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="Место"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
-                  value={newLocation}
-                  onChange={(e) => setNewLocation(e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="Участники"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
-                  value={newParticipants}
-                  onChange={(e) => setNewParticipants(e.target.value)}
-                />
+                  Показать все
+                </button>
               </div>
-              <div className="flex gap-3 mt-4">
-                <Button onClick={addEvent}>Добавить</Button>
-                <Button variant="outline" onClick={() => setShowForm(false)}>Отмена</Button>
-              </div>
-            </GlassCard>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {events.length === 0 ? (
-              <div className="col-span-2 text-center text-gray-400 py-12">
-                <CalendarIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p>В календаре пока нет событий</p>
-              </div>
-            ) : (
-              events.map((event) => {
-                const typeInfo = eventTypeMap[event.type] || eventTypeMap.training;
-                return (
-                  <GlassCard key={event.id} className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${typeInfo.color}`}>
-                          {event.type === 'training' && '🏋️'}
-                          {event.type === 'match' && '⚔️'}
-                          {event.type === 'tournament' && '🏆'}
-                          {event.type === 'meeting' && '🤝'}
-                        </div>
-                        <div>
-                          <h3 className="text-white font-medium">{event.title}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${typeInfo.color}`}>
-                            {typeInfo.label}
-                          </span>
-                        </div>
-                      </div>
+              {events.some((e) => !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) && (
+                <section className="panel legacy-events">
+                  <h3>События без точной даты</h3>
+                  <p>
+                    Ранее даты были сохранены текстом. Эти события остаются
+                    доступны здесь.
+                  </p>
+                  {events
+                    .filter((e) => !/^\d{4}-\d{2}-\d{2}$/.test(e.date))
+                    .map((e) => (
                       <button
-                        onClick={() => deleteEvent(event.id)}
-                        className="text-red-400 hover:text-red-300 text-sm"
+                        className="upcoming-event"
+                        key={e.id}
+                        onClick={() => {
+                          setSelected(e);
+                          setConfirmDelete(false);
+                        }}
                       >
-                        ✕
+                        <strong>{e.title}</strong>
+                        <span>{e.date}</span>
                       </button>
+                    ))}
+                </section>
+              )}
+            </section>
+            <aside className="calendar-aside">
+              <section className="panel">
+                <div className="panel-title">
+                  <h2>Ближайшие события</h2>
+                  <span className="tag blue">{upcoming.length}</span>
+                </div>
+                {upcoming.length ? (
+                  upcoming.map((e) => (
+                    <button
+                      className="upcoming-event"
+                      key={e.id}
+                      onClick={() => {
+                        setSelected(e);
+                        setConfirmDelete(false);
+                      }}
+                    >
+                      <i
+                        className={`event-dot ${types[e.type]?.color || "blue"}`}
+                      />
+                      <div>
+                        <strong>{e.title}</strong>
+                        <small>
+                          {new Date(e.date + "T12:00:00").toLocaleDateString(
+                            "ru-RU",
+                            { day: "numeric", month: "long" },
+                          )}{" "}
+                          · {e.time === "—" ? "Весь день" : e.time}
+                        </small>
+                      </div>
+                      <ChevronRight size={15} />
+                    </button>
+                  ))
+                ) : (
+                  <div className="aside-empty">
+                    <CalendarDays size={28} />
+                    <p>
+                      {teamId ? "Пока всё свободно" : "Расписание недоступно"}
+                    </p>
+                    <small>
+                      Добавьте тренировку или матч, чтобы команда знала план.
+                    </small>
+                  </div>
+                )}
+              </section>
+              <section className="panel">
+                <div className="panel-title">
+                  <h2>Совпадения в расписании</h2>
+                  <Users size={18} />
+                </div>
+                <p className="muted-text">
+                  Проверяем совпадение даты, времени начала и участников.
+                </p>
+                {conflicts.length ? (
+                  conflicts.map(({ a, b }) => (
+                    <div className="conflict-card" key={`${a.id}-${b.id}`}>
+                      <span className="tag amber">Нужно проверить</span>
+                      <h3>
+                        {a.title} / {b.title}
+                      </h3>
+                      <p>
+                        {a.date} · {a.time}
+                      </p>
                     </div>
-
-                    <div className="mt-4 pt-4 border-t border-white/5 space-y-2 text-sm text-gray-400">
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-4 h-4" />
-                        <span>{event.date}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        <span>{event.time}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>{event.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>{event.participants}</span>
-                      </div>
-                    </div>
-                  </GlassCard>
-                );
-              })
-            )}
+                  ))
+                ) : (
+                  <div className="availability-state">
+                    <span>✓</span>
+                    <p>
+                      {teamId
+                        ? "Совпадений не найдено"
+                        : "Нет данных для проверки"}
+                      <small>
+                        Доступность игроков и длительность событий пока не
+                        учитываются.
+                      </small>
+                    </p>
+                  </div>
+                )}
+              </section>
+              <div className="calendar-tip">
+                <span className="eyebrow">СОВЕТ КАПИТАНУ</span>
+                <p>Оставляйте время на разбор.</p>
+                <small>
+                  Короткая встреча после тренировки поможет закрепить результат.
+                </small>
+              </div>
+            </aside>
           </div>
         </div>
+        {formDate !== null && (
+          <ModalBackdrop onClose={() => setFormDate(null)}>
+            <section
+              className="workspace-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="event-title"
+            >
+              <div className="modal-heading">
+                <h2 id="event-title">Новое событие</h2>
+                <button
+                  className="icon-button"
+                  aria-label="Закрыть"
+                  onClick={() => setFormDate(null)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={addEvent}>
+                <label>
+                  Название
+                  <input
+                    autoFocus
+                    name="title"
+                    required
+                    maxLength={200}
+                    placeholder="Командная тренировка на Mirage"
+                  />
+                </label>
+                <div className="form-grid">
+                  <label>
+                    Тип
+                    <select name="type">
+                      {Object.entries(types).map(([key, t]) => (
+                        <option value={key} key={key}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Дата
+                    <input
+                      type="date"
+                      name="date"
+                      required
+                      defaultValue={formDate}
+                    />
+                  </label>
+                </div>
+                <label>
+                  Время начала
+                  <input type="time" name="time" />
+                </label>
+                <label>
+                  Место
+                  <input
+                    name="location"
+                    placeholder="Сервер или ссылка на встречу"
+                  />
+                </label>
+                <label>
+                  Участники
+                  <input
+                    name="participants"
+                    placeholder="Никнеймы через запятую"
+                  />
+                </label>
+                <Notice message={error} />
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setFormDate(null)}
+                  >
+                    Отмена
+                  </button>
+                  <button disabled={busy} className="primary-button">
+                    {busy ? "Сохраняем…" : "Создать событие"}
+                  </button>
+                </div>
+              </form>
+            </section>
+          </ModalBackdrop>
+        )}
+        {selected && (
+          <ModalBackdrop onClose={() => setSelected(null)}>
+            <section
+              className="workspace-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="event-detail-title"
+            >
+              <div className="modal-heading">
+                <span
+                  className={`tag ${types[selected.type]?.color || "blue"}`}
+                >
+                  {types[selected.type]?.label || selected.type}
+                </span>
+                <button
+                  className="icon-button"
+                  aria-label="Закрыть"
+                  onClick={() => setSelected(null)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <h2 id="event-detail-title">{selected.title}</h2>
+              <div className="event-details">
+                <p>
+                  <CalendarDays size={18} />
+                  {/^\d{4}-\d{2}-\d{2}$/.test(selected.date)
+                    ? new Date(selected.date + "T12:00:00").toLocaleDateString(
+                        "ru-RU",
+                        { day: "numeric", month: "long", year: "numeric" },
+                      )
+                    : selected.date}
+                </p>
+                <p>
+                  <Clock size={18} />
+                  {selected.time === "—" ? "Весь день" : selected.time}
+                </p>
+                <p>
+                  <MapPin size={18} />
+                  {selected.location}
+                </p>
+                <p>
+                  <Users size={18} />
+                  {selected.participants}
+                </p>
+              </div>
+              <Notice message={error} />
+              <div className="modal-actions">
+                {confirmDelete ? (
+                  <>
+                    <span>Удалить безвозвратно?</span>
+                    <button
+                      className="secondary-button"
+                      onClick={() => setConfirmDelete(false)}
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      className="primary-button"
+                      disabled={busy}
+                      onClick={deleteEvent}
+                    >
+                      Удалить
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="secondary-button danger"
+                    onClick={() => setConfirmDelete(true)}
+                  >
+                    <Trash2 size={16} />
+                    Удалить событие
+                  </button>
+                )}
+              </div>
+            </section>
+          </ModalBackdrop>
+        )}
       </main>
     </div>
   );

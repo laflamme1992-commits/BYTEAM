@@ -1,12 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Sidebar } from '@/components/ui/Sidebar';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { Button } from '@/components/ui/Button';
-import { Trophy, Plus, Calendar, MapPin, Users, Award, Sparkles, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ConnectionRequired } from "@/components/workspace/ConnectionRequired";
+import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/ui/Sidebar";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import {
+  Trophy,
+  Plus,
+  Calendar,
+  Users,
+  Award,
+  Sparkles,
+  X,
+} from "lucide-react";
 
 interface Tournament {
   id: string;
@@ -23,16 +32,24 @@ interface Tournament {
 }
 
 export default function TournamentsPage() {
+  return isSupabaseConfigured ? (
+    <TournamentsPageConnected />
+  ) : (
+    <ConnectionRequired />
+  );
+}
+
+function TournamentsPageConnected() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newGame, setNewGame] = useState('CS2');
-  const [newFormat, setNewFormat] = useState('5v5');
-  const [newRegion, setNewRegion] = useState('EU');
-  const [newPrize, setNewPrize] = useState('');
-  const [newDate, setNewDate] = useState('');
+  const [newTitle, setNewTitle] = useState("");
+  const [newGame, setNewGame] = useState("CS2");
+  const [newFormat, setNewFormat] = useState("5v5");
+  const [newRegion, setNewRegion] = useState("EU");
+  const [newPrize, setNewPrize] = useState("");
+  const [newDate, setNewDate] = useState("");
   const [newTeams, setNewTeams] = useState(8);
   const [newMaxElo, setNewMaxElo] = useState(2500);
   const [newRecommended, setNewRecommended] = useState(false);
@@ -41,25 +58,27 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
       const { data: team } = await supabase
-        .from('teams')
-        .select('id')
-        .eq('captain_id', user.id)
+        .from("teams")
+        .select("id")
+        .eq("captain_id", user.id)
         .single();
 
       if (team) {
         setTeamId(team.id);
         const { data: tournamentsData } = await supabase
-          .from('tournaments')
-          .select('*')
-          .eq('team_id', team.id)
-          .order('date', { ascending: true });
+          .from("tournaments")
+          .select("*")
+          .eq("team_id", team.id)
+          .order("date", { ascending: true });
         if (tournamentsData) setTournaments(tournamentsData);
       }
       setLoading(false);
@@ -72,32 +91,34 @@ export default function TournamentsPage() {
     if (!teamId || !newTitle.trim()) return;
 
     const { data, error } = await supabase
-      .from('tournaments')
-      .insert([{
-        team_id: teamId,
-        title: newTitle,
-        game: newGame,
-        format: newFormat,
-        region: newRegion,
-        prize: newPrize || '—',
-        date: newDate || 'Без даты',
-        teams: newTeams,
-        max_elo: newMaxElo,
-        is_recommended: newRecommended,
-      }])
+      .from("tournaments")
+      .insert([
+        {
+          team_id: teamId,
+          title: newTitle,
+          game: newGame,
+          format: newFormat,
+          region: newRegion,
+          prize: newPrize || "—",
+          date: newDate || "Без даты",
+          teams: newTeams,
+          max_elo: newMaxElo,
+          is_recommended: newRecommended,
+        },
+      ])
       .select()
       .single();
 
     if (error) {
-      alert('Ошибка: ' + error.message);
+      alert("Ошибка: " + error.message);
     } else if (data) {
       setTournaments([...tournaments, data]);
-      setNewTitle('');
-      setNewGame('CS2');
-      setNewFormat('5v5');
-      setNewRegion('EU');
-      setNewPrize('');
-      setNewDate('');
+      setNewTitle("");
+      setNewGame("CS2");
+      setNewFormat("5v5");
+      setNewRegion("EU");
+      setNewPrize("");
+      setNewDate("");
       setNewTeams(8);
       setNewMaxElo(2500);
       setNewRecommended(false);
@@ -106,17 +127,14 @@ export default function TournamentsPage() {
   };
 
   const deleteTournament = async (id: string) => {
-    if (!confirm('Удалить турнир?')) return;
+    if (!confirm("Удалить турнир?")) return;
 
-    const { error } = await supabase
-      .from('tournaments')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from("tournaments").delete().eq("id", id);
 
     if (error) {
-      alert('Ошибка: ' + error.message);
+      alert("Ошибка: " + error.message);
     } else {
-      setTournaments(tournaments.filter(t => t.id !== id));
+      setTournaments(tournaments.filter((t) => t.id !== id));
     }
   };
 
@@ -131,24 +149,23 @@ export default function TournamentsPage() {
     );
   }
 
-  const recommendedTournaments = tournaments.filter(t => t.is_recommended);
-  const otherTournaments = tournaments.filter(t => !t.is_recommended);
+  const recommendedTournaments = tournaments.filter((t) => t.is_recommended);
+  const otherTournaments = tournaments.filter((t) => !t.is_recommended);
 
   return (
     <div className="min-h-screen bg-[#0a0e17] flex">
       <Sidebar />
-      
+
       <main className="flex-1 ml-56 p-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white">Турниры</h1>
-              <p className="text-gray-400">Найди и создавай турниры для своей команды</p>
+              <p className="text-gray-400">
+                Найди и создавай турниры для своей команды
+              </p>
             </div>
-            <Button 
-              onClick={() => setShowForm(!showForm)}
-              className="gap-2"
-            >
+            <Button onClick={() => setShowForm(!showForm)} className="gap-2">
               <Plus className="w-4 h-4" />
               Создать турнир
             </Button>
@@ -157,8 +174,13 @@ export default function TournamentsPage() {
           {showForm && (
             <GlassCard className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Новый турнир</h3>
-                <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white">
+                <h3 className="text-lg font-semibold text-white">
+                  Новый турнир
+                </h3>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-white"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -236,12 +258,16 @@ export default function TournamentsPage() {
                     checked={newRecommended}
                     onChange={(e) => setNewRecommended(e.target.checked)}
                   />
-                  <span className="text-sm text-gray-400">Рекомендованный для команды</span>
+                  <span className="text-sm text-gray-400">
+                    Рекомендованный для команды
+                  </span>
                 </label>
               </div>
               <div className="flex gap-3 mt-4">
                 <Button onClick={addTournament}>Создать турнир</Button>
-                <Button variant="outline" onClick={() => setShowForm(false)}>Отмена</Button>
+                <Button variant="outline" onClick={() => setShowForm(false)}>
+                  Отмена
+                </Button>
               </div>
             </GlassCard>
           )}
@@ -254,10 +280,15 @@ export default function TournamentsPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {recommendedTournaments.map((t) => (
-                  <GlassCard key={t.id} className="p-6 hover:border-purple-500/30">
+                  <GlassCard
+                    key={t.id}
+                    className="p-6 hover:border-purple-500/30"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-white font-medium text-lg">{t.title}</h3>
+                        <h3 className="text-white font-medium text-lg">
+                          {t.title}
+                        </h3>
                         <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
                           <span>{t.game}</span>
                           <span className="w-1 h-1 rounded-full bg-gray-600" />
@@ -268,7 +299,9 @@ export default function TournamentsPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-400">Призовой фонд</p>
-                        <p className="text-lg font-bold text-purple-400">{t.prize}</p>
+                        <p className="text-lg font-bold text-purple-400">
+                          {t.prize}
+                        </p>
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-400">
@@ -303,15 +336,24 @@ export default function TournamentsPage() {
               {tournaments.length === 0 ? (
                 <div className="text-center text-gray-400 py-12">
                   <Trophy className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                  <p className="text-lg font-medium text-white mb-2">Нет турниров</p>
-                  <p className="text-sm">Создай свой первый турнир или найди существующий</p>
+                  <p className="text-lg font-medium text-white mb-2">
+                    Нет турниров
+                  </p>
+                  <p className="text-sm">
+                    Создай свой первый турнир или найди существующий
+                  </p>
                 </div>
               ) : (
                 otherTournaments.map((t) => (
-                  <GlassCard key={t.id} className="p-5 hover:border-blue-500/30">
+                  <GlassCard
+                    key={t.id}
+                    className="p-5 hover:border-blue-500/30"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-2xl">🏆</div>
+                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-2xl">
+                          🏆
+                        </div>
                         <div>
                           <h3 className="text-white font-medium">{t.title}</h3>
                           <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">

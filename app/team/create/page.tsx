@@ -1,13 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
+import { useState } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ConnectionRequired } from "@/components/workspace/ConnectionRequired";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 
 export default function CreateTeamPage() {
-  const [name, setName] = useState('');
-  const [country, setCountry] = useState('Россия');
+  return isSupabaseConfigured ? (
+    <CreateTeamPageConnected />
+  ) : (
+    <ConnectionRequired />
+  );
+}
+
+function CreateTeamPageConnected() {
+  const [name, setName] = useState("");
+  const [country, setCountry] = useState("Россия");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -16,27 +25,29 @@ export default function CreateTeamPage() {
     e.preventDefault();
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      alert('Вы не авторизованы!');
+      alert("Вы не авторизованы!");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase
-      .from('teams')
-      .insert([{ 
-        name, 
-        game: 'CS2', 
-        region: country, 
-        captain_id: user.id 
-      }]);
+    const { error } = await supabase.from("teams").insert([
+      {
+        name,
+        game: "CS2",
+        region: country,
+        captain_id: user.id,
+      },
+    ]);
 
     if (error) {
-      alert('Ошибка: ' + error.message);
+      alert("Ошибка: " + error.message);
     } else {
-      alert('Команда создана! 🎉');
-      router.push('/dashboard');
+      alert("Команда создана! 🎉");
+      router.push("/dashboard");
     }
     setLoading(false);
   };
@@ -44,9 +55,13 @@ export default function CreateTeamPage() {
   return (
     <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center px-4">
       <div className="bg-[#0f1622] border border-[#1a2332] rounded-2xl p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-white text-center mb-6">Создать команду</h1>
-        <p className="text-sm text-gray-400 text-center mb-6">Игра: Counter-Strike 2</p>
-        
+        <h1 className="text-2xl font-bold text-white text-center mb-6">
+          Создать команду
+        </h1>
+        <p className="text-sm text-gray-400 text-center mb-6">
+          Игра: Counter-Strike 2
+        </p>
+
         <form onSubmit={handleCreateTeam} className="space-y-4">
           <input
             type="text"
@@ -56,7 +71,7 @@ export default function CreateTeamPage() {
             onChange={(e) => setName(e.target.value)}
             required
           />
-          
+
           <select
             className="w-full bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50"
             value={country}
@@ -82,7 +97,7 @@ export default function CreateTeamPage() {
           </select>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Создание...' : 'Создать команду'}
+            {loading ? "Создание..." : "Создать команду"}
           </Button>
         </form>
       </div>
