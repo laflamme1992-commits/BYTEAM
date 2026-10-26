@@ -77,8 +77,8 @@ function AddPlayerPageConnected() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center px-4">
-      <div className="bg-[#0f1622] border border-[#1a2332] rounded-2xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-[#0c1011] flex items-center justify-center px-4">
+      <div className="bg-[#141b19] border border-[#29382f] rounded-2xl p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-white text-center mb-2">
           ➕ Добавить игрока
         </h1>
@@ -94,7 +94,7 @@ function AddPlayerPageConnected() {
             <input
               type="text"
               placeholder="Например: Игрок 1"
-              className="w-full bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+              className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -106,7 +106,7 @@ function AddPlayerPageConnected() {
               Роль в команде
             </label>
             <select
-              className="w-full bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50"
+              className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
@@ -124,7 +124,7 @@ function AddPlayerPageConnected() {
             </label>
             <input
               type="number"
-              className="w-full bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50"
+              className="w-full bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50"
               value={elo}
               onChange={(e) => setElo(Number(e.target.value))}
               min={0}

@@ -39,7 +39,7 @@ export function Sidebar() {
       <Link href="/" className="brand" aria-label="BYTEAM — главная">
         <span className="brand-mark">B</span>
         <span>
-          BYTEAM<small>ПРОСТРАНСТВО КОМАНДЫ</small>
+          BYTEAM<small>BUILD YOUR TEAM</small>
         </span>
       </Link>
       <div className="nav-caption">УПРАВЛЕНИЕ</div>

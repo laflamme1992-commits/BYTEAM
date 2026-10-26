@@ -81,7 +81,7 @@ function ProgressPageConnected() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0e17] flex">
+      <div className="min-h-screen bg-[#0c1011] flex">
         <Sidebar />
         <main className="flex-1 ml-56 p-8">
           <div className="text-white">Загрузка...</div>
@@ -92,7 +92,7 @@ function ProgressPageConnected() {
 
   if (!team) {
     return (
-      <div className="min-h-screen bg-[#0a0e17] flex">
+      <div className="min-h-screen bg-[#0c1011] flex">
         <Sidebar />
         <main className="flex-1 ml-56 p-8 flex items-center justify-center">
           <GlassCard className="text-center max-w-md">
@@ -151,7 +151,7 @@ function ProgressPageConnected() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex">
+    <div className="min-h-screen bg-[#0c1011] flex">
       <Sidebar />
 
       <main className="flex-1 ml-56 p-8">
@@ -173,12 +173,12 @@ function ProgressPageConnected() {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-400">Прогресс</p>
-                <p className="text-2xl font-bold text-blue-400">{progress}%</p>
+                <p className="text-2xl font-bold text-teal-400">{progress}%</p>
               </div>
             </div>
-            <div className="mt-4 w-full h-3 bg-[#1a2332] rounded-full overflow-hidden">
+            <div className="mt-4 w-full h-3 bg-[#29382f] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
+                className="h-full bg-gradient-to-r from-teal-500 to-purple-500 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -212,7 +212,7 @@ function ProgressPageConnected() {
             </GlassCard>
             <GlassCard className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <Clock className="w-5 h-5 text-blue-400" />
+                <Clock className="w-5 h-5 text-teal-400" />
               </div>
               <p className="text-2xl font-bold text-white">23</p>
               <p className="text-xs text-gray-500">Матчей</p>

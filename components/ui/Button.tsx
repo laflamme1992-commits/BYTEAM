@@ -7,11 +7,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
+  (
+    { className, variant = "primary", size = "md", children, ...props },
+    ref,
+  ) => {
     const variants = {
-      primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20",
-      outline: "border border-[#1a2332] hover:bg-[#1a2332] text-gray-300",
-      ghost: "hover:bg-[#1a2332] text-gray-400",
+      primary:
+        "bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-ink)] shadow-lg shadow-teal-600/10",
+      outline: "border border-[#29382f] hover:bg-[#29382f] text-gray-300",
+      ghost: "hover:bg-[#29382f] text-gray-400",
     };
 
     const sizes = {
@@ -27,14 +31,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           "rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
           variants[variant],
           sizes[size],
-          className
+          className,
         )}
         {...props}
       >
         {children}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

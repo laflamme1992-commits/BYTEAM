@@ -143,7 +143,7 @@ function PracticePageConnected() {
     const map: Record<string, { label: string; color: string }> = {
       planned: {
         label: "Запланирована",
-        color: "bg-blue-500/10 text-blue-400",
+        color: "bg-teal-500/10 text-teal-400",
       },
       in_progress: {
         label: "В процессе",
@@ -161,7 +161,7 @@ function PracticePageConnected() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0e17] flex">
+      <div className="min-h-screen bg-[#0c1011] flex">
         <Sidebar />
         <main className="flex-1 ml-56 p-8">
           <div className="text-white">Загрузка...</div>
@@ -171,7 +171,7 @@ function PracticePageConnected() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex">
+    <div className="min-h-screen bg-[#0c1011] flex">
       <Sidebar />
 
       <main className="flex-1 ml-56 p-8">
@@ -196,47 +196,47 @@ function PracticePageConnected() {
                 <input
                   type="text"
                   placeholder="Название"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                 />
                 <input
                   type="text"
                   placeholder="Соперник"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newOpponent}
                   onChange={(e) => setNewOpponent(e.target.value)}
                 />
                 <input
                   type="text"
                   placeholder="Дата"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
                 />
                 <input
                   type="text"
                   placeholder="Время"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
                 />
                 <input
                   type="text"
                   placeholder="Карты"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newMaps}
                   onChange={(e) => setNewMaps(e.target.value)}
                 />
                 <input
                   type="text"
                   placeholder="Сервер"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newServer}
                   onChange={(e) => setNewServer(e.target.value)}
                 />
                 <select
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newFormat}
                   onChange={(e) => setNewFormat(e.target.value)}
                 >
@@ -246,7 +246,7 @@ function PracticePageConnected() {
                   <option value="Индивидуально">Индивидуально</option>
                 </select>
                 <select
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white"
                   value={newStatus}
                   onChange={(e) =>
                     setNewStatus(e.target.value as Practice["status"])
@@ -279,7 +279,7 @@ function PracticePageConnected() {
                   <GlassCard key={practice.id} className="p-6">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-2xl">
+                        <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-2xl">
                           🏋️
                         </div>
                         <div>

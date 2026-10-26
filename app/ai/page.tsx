@@ -250,7 +250,7 @@ export default function AIPage() {
                   <div
                     className="progress-ring"
                     style={{
-                      background: `conic-gradient(#368eff ${progress}%, #1b2d41 0)`,
+                      background: `conic-gradient(var(--accent) ${progress}%, #24372d 0)`,
                     }}
                   >
                     <span>{tasks.length ? `${progress}%` : "—"}</span>

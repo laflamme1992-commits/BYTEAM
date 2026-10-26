@@ -140,7 +140,7 @@ function TournamentsPageConnected() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0e17] flex">
+      <div className="min-h-screen bg-[#0c1011] flex">
         <Sidebar />
         <main className="flex-1 ml-56 p-8">
           <div className="text-white">Загрузка...</div>
@@ -153,7 +153,7 @@ function TournamentsPageConnected() {
   const otherTournaments = tournaments.filter((t) => !t.is_recommended);
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] flex">
+    <div className="min-h-screen bg-[#0c1011] flex">
       <Sidebar />
 
       <main className="flex-1 ml-56 p-8">
@@ -188,12 +188,12 @@ function TournamentsPageConnected() {
                 <input
                   type="text"
                   placeholder="Название турнира"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                 />
                 <select
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50"
                   value={newGame}
                   onChange={(e) => setNewGame(e.target.value)}
                 >
@@ -203,7 +203,7 @@ function TournamentsPageConnected() {
                   <option>League of Legends</option>
                 </select>
                 <select
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50"
                   value={newFormat}
                   onChange={(e) => setNewFormat(e.target.value)}
                 >
@@ -212,7 +212,7 @@ function TournamentsPageConnected() {
                   <option>2v2</option>
                 </select>
                 <select
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50"
                   value={newRegion}
                   onChange={(e) => setNewRegion(e.target.value)}
                 >
@@ -225,21 +225,21 @@ function TournamentsPageConnected() {
                 <input
                   type="text"
                   placeholder="Призовой фонд (например, $500)"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
                   value={newPrize}
                   onChange={(e) => setNewPrize(e.target.value)}
                 />
                 <input
                   type="text"
                   placeholder="Дата (например, 5 сентября)"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
                 />
                 <input
                   type="number"
                   placeholder="Количество команд"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
                   value={newTeams}
                   onChange={(e) => setNewTeams(Number(e.target.value))}
                   min={2}
@@ -247,7 +247,7 @@ function TournamentsPageConnected() {
                 <input
                   type="number"
                   placeholder="Максимальный Elo"
-                  className="bg-[#0a0e17] border border-[#1a2332] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+                  className="bg-[#0c1011] border border-[#29382f] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50"
                   value={newMaxElo}
                   onChange={(e) => setNewMaxElo(Number(e.target.value))}
                   min={0}
@@ -275,7 +275,7 @@ function TournamentsPageConnected() {
           {recommendedTournaments.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-400" />
+                <Sparkles className="w-5 h-5 text-teal-400" />
                 Рекомендовано для твоей команды
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -347,7 +347,7 @@ function TournamentsPageConnected() {
                 otherTournaments.map((t) => (
                   <GlassCard
                     key={t.id}
-                    className="p-5 hover:border-blue-500/30"
+                    className="p-5 hover:border-teal-500/30"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
